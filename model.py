@@ -1,9 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Numeric, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Numeric, Boolean, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker
 import datetime
 
 Base = declarative_base()
+
+DB_URL = "sqlite:///cibinet_dev.db"
+engine = create_engine(DB_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class User(Base):
     __tablename__ = 'users'
