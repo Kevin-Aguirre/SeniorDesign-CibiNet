@@ -1,0 +1,17 @@
+backlash==0.4.0
+crank==0.8.1
+gearbox==0.3.2
+greenlet==3.3.2
+hupper==1.12.1
+MarkupSafe==3.0.3
+PasteDeploy==3.1.0
+Pygments==2.19.2
+repoze.lru==0.7
+SQLAlchemy==2.0.48
+Tempita==0.6.0
+tg==0.22.0
+tg.devtools==2.5.0
+tgext.debugbar==0.5.0
+TurboGears2==2.5.0
+typing_extensions==4.15.0
+WebOb==1.8.9
