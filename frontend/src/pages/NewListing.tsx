@@ -22,7 +22,7 @@ export default function NewListing() {
         address_text: address,
         hours_until_expiry: hours,
       });
-      navigate('/listings');
+      navigate('/my-listings');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create listing');
     } finally {
@@ -35,7 +35,7 @@ export default function NewListing() {
       {/* Back + Header */}
       <div className="mb-8 animate-fade-up">
         <button
-          onClick={() => navigate('/listings')}
+          onClick={() => navigate('/my-listings')}
           className="btn-ghost text-xs -ml-3 mb-4 group"
         >
           <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -160,7 +160,7 @@ export default function NewListing() {
 
         {/* Actions */}
         <div className="flex gap-3 pt-2 animate-fade-up-2">
-          <button type="button" onClick={() => navigate('/listings')} className="btn-outline flex-1">
+          <button type="button" onClick={() => navigate('/my-listings')} className="btn-outline flex-1">
             Cancel
           </button>
           <button type="submit" disabled={loading} className="btn-primary flex-1">

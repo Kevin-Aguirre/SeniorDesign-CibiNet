@@ -7,6 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Listings from './pages/Listings';
 import NewListing from './pages/NewListing';
+import MyListings from './pages/MyListings';
+import MyClaims from './pages/MyClaims';
+import Notifications from './pages/Notifications';
 
 export default function App() {
   return (
@@ -19,19 +22,23 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route
               path="/listings"
-              element={
-                <ProtectedRoute>
-                  <Listings />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><Listings /></ProtectedRoute>}
             />
             <Route
               path="/new-listing"
-              element={
-                <ProtectedRoute>
-                  <NewListing />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><NewListing /></ProtectedRoute>}
+            />
+            <Route
+              path="/my-listings"
+              element={<ProtectedRoute><MyListings /></ProtectedRoute>}
+            />
+            <Route
+              path="/my-claims"
+              element={<ProtectedRoute><MyClaims /></ProtectedRoute>}
+            />
+            <Route
+              path="/notifications"
+              element={<ProtectedRoute><Notifications /></ProtectedRoute>}
             />
             <Route
               path="*"

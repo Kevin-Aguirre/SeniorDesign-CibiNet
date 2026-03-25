@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { api } from '../api/client';
 import type { User } from '../types';
-
-const MOCK_AUTH = true;
 
 interface AuthState {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, role: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (email: string, password: string, role: string) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -17,40 +16,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // On mount, restore session from the backend cookie if one exists
   useEffect(() => {
-    if (MOCK_AUTH) {
-      const saved = localStorage.getItem('mock_user');
-      if (saved) setUser(JSON.parse(saved));
-      setLoading(false);
-      return;
-    }
-    // TODO: restore real auth check when backend is ready
-    // api.auth.checkStatus() ...
-    setLoading(false);
+    api.auth.checkStatus()
+      .then(status => {
+        if (status.logged_in) return api.users.me().then(setUser);
+      })
+      .catch(() => {}) // backend not reachable — stay logged out silently
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = async (email: string, _password: string) => {
-    if (MOCK_AUTH) {
-      const mockUser: User = { id: 1, email, role: 'Donor' };
-      localStorage.setItem('mock_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      return;
-    }
-    // TODO: restore real login when backend is ready
+  const login = async (email: string, password: string): Promise<User> => {
+    const res = await api.auth.login(email, password);
+    setUser(res.user);
+    return res.user;
   };
 
-  const register = async (email: string, _password: string, role: string) => {
-    if (MOCK_AUTH) {
-      const mockUser: User = { id: Date.now(), email, role: role as User['role'] };
-      localStorage.setItem('mock_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      return;
-    }
-    // TODO: restore real register when backend is ready
+  const register = async (email: string, password: string, role: string): Promise<User> => {
+    await api.auth.register(email, password, role);
+    return login(email, password);
   };
 
   const logout = async () => {
-    localStorage.removeItem('mock_user');
+    await api.auth.logout().catch(() => {});
     setUser(null);
   };
 

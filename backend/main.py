@@ -21,6 +21,11 @@ def cleanup_scheduler():
 
 
 config = AppConfig(minimal=True, root_controller=RootController())
+config['session.enabled'] = True
+config['session.type'] = 'cookie'
+config['session.key'] = 'cibinet_session'
+config['session.validate_key'] = 'cibinet-dev-secret-key'
+config['session.secure'] = False
 application = config.make_wsgi_app()
 
 if __name__ == "__main__":

@@ -26,23 +26,27 @@ class UserSchema:
 
 class ListingMapSchema:
     """
-    Minimal listing shape for the map/discovery view.
-    Only exposes public fields — donor address is intentionally excluded
-    until a claim is made (NFR-03: address obfuscation).
+    Public listing shape for the map/discovery view.
+    Address is intentionally excluded until a claim is made (NFR-03).
+    Quantity and expiry_time are included so Recipients can judge urgency.
     """
 
     def __init__(self, listing):
         self.listing_id = listing.listing_id
         self.food_type = listing.food_type
+        self.quantity = listing.quantity
         self.lat = float(listing.latitude)
         self.lon = float(listing.longitude)
+        self.expiry_time = listing.expiry_time.isoformat()
 
     def to_dict(self):
         return {
             "id": self.listing_id,
             "food": self.food_type,
+            "quantity": self.quantity,
             "lat": self.lat,
-            "lon": self.lon
+            "lon": self.lon,
+            "expiry_time": self.expiry_time
         }
 
 

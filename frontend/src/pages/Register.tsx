@@ -17,7 +17,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(email, password, role);
-      navigate('/listings');
+      navigate(role === 'Donor' ? '/my-listings' : '/listings');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {

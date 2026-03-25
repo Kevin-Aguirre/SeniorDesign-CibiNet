@@ -1,3 +1,5 @@
+import type { User, Listing, ListingDetail, Claim, Notification } from '../types';
+
 const BASE = '/api';
 
 function toQuery(params: Record<string, string | number>): string {
@@ -22,17 +24,25 @@ export const api = {
       request<{ status: string; user_id: number }>('/auth/register', { email, password, role }),
 
     login: (email: string, password: string) =>
-      request<{ status: string; user: { id: number; email: string; role: string } }>('/auth/login', { email, password }),
+      request<{ status: string; user: User }>('/auth/login', { email, password }),
 
     logout: () => request<{ status: string }>('/auth/logout'),
 
     checkStatus: () =>
-      request<{ logged_in: boolean; user_id?: number }>('/auth/check_status'),
+      request<{ logged_in: boolean; user_id?: number; user_role?: string }>('/auth/check_status'),
+  },
+
+  users: {
+    me: () => request<User>('/users/me'),
+    myListings: () => request<{ listings: ListingDetail[] }>('/users/my_listings'),
   },
 
   listings: {
-    nearby: (lat: number, lon: number) =>
-      request<{ listings: Array<{ id: number; food: string; lat: number; lon: number }> }>('/listings/nearby', { lat, lon }),
+    nearby: (lat: number, lon: number, radius = 5, foodType?: string) => {
+      const params: Record<string, string | number> = { lat, lon, radius };
+      if (foodType) params.food_type = foodType;
+      return request<{ listings: Listing[] }>('/listings/nearby', params);
+    },
 
     create: (data: {
       food_type: string;
@@ -47,13 +57,27 @@ export const api = {
     }),
 
     claim: (listingId: number, logisticsType: string) =>
-      request<{ status: string; logistics_packet: { address: string } }>('/listings/claim', {
-        listing_id: listingId,
-        logistics_type: logisticsType,
-      }),
+      request<{
+        status: string;
+        coordination_id: string;
+        logistics_packet: { address: string; lat: number; lon: number; logistics_type: string };
+      }>('/listings/claim', { listing_id: listingId, logistics_type: logisticsType }),
+  },
+
+  claims: {
+    mine: () => request<{ claims: Claim[] }>('/claims/mine'),
+    view: (claimId: number) => request<Claim>('/claims/view', { claim_id: claimId }),
+    acknowledge: (claimId: number) =>
+      request<{ status: string; message: string }>('/claims/acknowledge', { claim_id: claimId }),
+    cancel: (claimId: number) =>
+      request<{ status: string; message: string }>('/claims/cancel', { claim_id: claimId }),
+  },
+
+  notifications: {
+    mine: () => request<{ notifications: Notification[] }>('/notifications/mine'),
   },
 
   system: {
-    status: () => request<{ version: string; status: string }>(''),
+    cleanup: () => request<{ expired_items_removed: number }>('/system/cleanup'),
   },
 };

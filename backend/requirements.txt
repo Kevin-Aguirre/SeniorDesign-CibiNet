@@ -1,4 +1,5 @@
 backlash==0.4.0
+beaker==1.13.0
 crank==0.8.1
 gearbox==0.3.2
 greenlet==3.3.2

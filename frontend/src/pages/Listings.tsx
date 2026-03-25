@@ -3,19 +3,24 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import ListingCard from '../components/ListingCard';
+import ListingMap from '../components/ListingMap';
 import type { Listing } from '../types';
+
+type View = 'list' | 'map';
 
 export default function Listings() {
   const { user } = useAuth();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [view, setView] = useState<View>('list');
+  const [foodTypeFilter, setFoodTypeFilter] = useState('');
 
-  const fetchListings = async () => {
+  const fetchListings = async (filter?: string) => {
     setLoading(true);
     setError('');
     try {
-      const data = await api.listings.nearby(40.7128, -74.006);
+      const data = await api.listings.nearby(40.7128, -74.006, 5, filter || undefined);
       setListings(data.listings);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load listings');
@@ -28,10 +33,15 @@ export default function Listings() {
     fetchListings();
   }, []);
 
+  const handleFilterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchListings(foodTypeFilter.trim() || undefined);
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 animate-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 animate-fade-up">
         <div>
           <h1 className="font-display text-4xl font-extrabold text-surface-950 tracking-tight">
             Available Donations
@@ -43,7 +53,7 @@ export default function Listings() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchListings} className="btn-ghost group">
+          <button onClick={() => fetchListings(foodTypeFilter || undefined)} className="btn-ghost group">
             <svg
               className="w-4 h-4 text-surface-400 group-hover:text-surface-900 transition-transform duration-500 group-hover:rotate-180"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -60,6 +70,57 @@ export default function Listings() {
               New Donation
             </Link>
           )}
+        </div>
+      </div>
+
+      {/* Filter + view toggle */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-8 animate-fade-up" style={{ animationDelay: '60ms' }}>
+        <form onSubmit={handleFilterSubmit} className="flex gap-2 flex-1">
+          <input
+            type="text"
+            value={foodTypeFilter}
+            onChange={e => setFoodTypeFilter(e.target.value)}
+            placeholder="Filter by food type (e.g. bread, soup…)"
+            className="input flex-1"
+          />
+          <button type="submit" className="btn-outline !px-5">
+            Search
+          </button>
+          {foodTypeFilter && (
+            <button
+              type="button"
+              onClick={() => { setFoodTypeFilter(''); fetchListings(); }}
+              className="btn-ghost !px-4"
+            >
+              Clear
+            </button>
+          )}
+        </form>
+
+        {/* List / Map toggle */}
+        <div className="flex items-center bg-surface-100 rounded-full p-1 gap-1 self-start sm:self-auto">
+          <button
+            onClick={() => setView('list')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+              view === 'list' ? 'bg-white shadow-sm text-surface-950' : 'text-surface-400 hover:text-surface-700'
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            List
+          </button>
+          <button
+            onClick={() => setView('map')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+              view === 'map' ? 'bg-white shadow-sm text-surface-950' : 'text-surface-400 hover:text-surface-700'
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Map
+          </button>
         </div>
       </div>
 
@@ -86,9 +147,11 @@ export default function Listings() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <h3 className="font-display text-xl font-bold text-surface-950 mb-2">No donations yet</h3>
+          <h3 className="font-display text-xl font-bold text-surface-950 mb-2">No donations found</h3>
           <p className="text-surface-400 text-sm max-w-xs mx-auto leading-relaxed">
-            There are no active listings right now. Check back soon or be the first to share.
+            {foodTypeFilter
+              ? `No listings matching "${foodTypeFilter}". Try a different search.`
+              : 'No active listings right now. Check back soon.'}
           </p>
           {user?.role === 'Donor' && (
             <Link to="/new-listing" className="btn-accent mt-6 inline-flex">
@@ -96,6 +159,8 @@ export default function Listings() {
             </Link>
           )}
         </div>
+      ) : view === 'map' ? (
+        <ListingMap listings={listings} onClaimed={() => fetchListings(foodTypeFilter || undefined)} />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((listing, i) => (
@@ -104,7 +169,7 @@ export default function Listings() {
               className="animate-fade-up"
               style={{ animationDelay: `${i * 80}ms` }}
             >
-              <ListingCard listing={listing} onClaimed={fetchListings} />
+              <ListingCard listing={listing} onClaimed={() => fetchListings(foodTypeFilter || undefined)} />
             </div>
           ))}
         </div>

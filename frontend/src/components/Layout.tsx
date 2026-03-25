@@ -37,28 +37,64 @@ export default function Layout() {
             {/* Right side */}
             {user ? (
               <nav className="flex items-center gap-0.5">
-                <Link
-                  to="/listings"
-                  className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
-                    isActive('/listings')
-                      ? 'bg-surface-950 text-white'
-                      : 'text-surface-400 hover:text-surface-900'
-                  }`}
-                >
-                  Browse
-                </Link>
-                {user.role === 'Donor' && (
+                {user.role === 'Recipient' && (
                   <Link
-                    to="/new-listing"
+                    to="/listings"
                     className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
-                      isActive('/new-listing')
+                      isActive('/listings')
                         ? 'bg-surface-950 text-white'
                         : 'text-surface-400 hover:text-surface-900'
                     }`}
                   >
-                    Donate
+                    Browse
                   </Link>
                 )}
+                {user.role === 'Donor' && (
+                  <>
+                    <Link
+                      to="/new-listing"
+                      className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                        isActive('/new-listing')
+                          ? 'bg-surface-950 text-white'
+                          : 'text-surface-400 hover:text-surface-900'
+                      }`}
+                    >
+                      Donate
+                    </Link>
+                    <Link
+                      to="/my-listings"
+                      className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                        isActive('/my-listings')
+                          ? 'bg-surface-950 text-white'
+                          : 'text-surface-400 hover:text-surface-900'
+                      }`}
+                    >
+                      My Listings
+                    </Link>
+                  </>
+                )}
+                {user.role === 'Recipient' && (
+                  <Link
+                    to="/my-claims"
+                    className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                      isActive('/my-claims')
+                        ? 'bg-surface-950 text-white'
+                        : 'text-surface-400 hover:text-surface-900'
+                    }`}
+                  >
+                    My Claims
+                  </Link>
+                )}
+                <Link
+                  to="/notifications"
+                  className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                    isActive('/notifications')
+                      ? 'bg-surface-950 text-white'
+                      : 'text-surface-400 hover:text-surface-900'
+                  }`}
+                >
+                  Notifications
+                </Link>
 
                 <div className="w-px h-4 bg-surface-200 mx-3" />
 

@@ -8,18 +8,30 @@ interface Props {
   onClaimed?: () => void;
 }
 
+function formatExpiry(isoString: string): string {
+  const diff = new Date(isoString).getTime() - Date.now();
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 0) return 'Expired';
+  if (hours < 1) return 'Expires soon';
+  if (hours < 24) return `Expires in ${hours}h`;
+  return `Expires in ${Math.floor(hours / 24)}d`;
+}
+
 export default function ListingCard({ listing, onClaimed }: Props) {
   const { user } = useAuth();
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [claimResult, setClaimResult] = useState<{ coordinationId: string; address: string } | null>(null);
 
   const handleClaim = async (logisticsType: string) => {
     setClaiming(true);
     setError('');
     try {
       const res = await api.listings.claim(listing.id, logisticsType);
-      setSuccess(`Claimed! Pickup at: ${res.logistics_packet.address}`);
+      setClaimResult({
+        coordinationId: res.coordination_id,
+        address: res.logistics_packet.address,
+      });
       onClaimed?.();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to claim');
@@ -27,6 +39,9 @@ export default function ListingCard({ listing, onClaimed }: Props) {
       setClaiming(false);
     }
   };
+
+  const expiryLabel = formatExpiry(listing.expiry_time);
+  const isExpiringSoon = new Date(listing.expiry_time).getTime() - Date.now() < 3600000;
 
   return (
     <div className="card-elevated group p-0 overflow-hidden">
@@ -43,28 +58,26 @@ export default function ListingCard({ listing, onClaimed }: Props) {
               <h3 className="text-base font-bold text-surface-950 leading-snug font-display">
                 {listing.food}
               </h3>
-              {listing.quantity && (
-                <p className="text-sm text-surface-400 mt-0.5">{listing.quantity}</p>
-              )}
+              <p className="text-sm text-surface-400 mt-0.5">{listing.quantity}</p>
             </div>
           </div>
-          <span className="badge text-green-700" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+          <span className="badge text-green-700 shrink-0" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
             Available
           </span>
         </div>
 
-        {/* Location */}
-        {listing.address_text && (
-          <div className="flex items-center gap-1.5 mt-4 text-sm text-surface-400">
-            <svg className="w-3.5 h-3.5 shrink-0 text-surface-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="truncate">{listing.address_text}</span>
-          </div>
-        )}
+        {/* Expiry */}
+        <div className={`flex items-center gap-1.5 mt-4 text-xs font-medium ${
+          isExpiringSoon ? 'text-orange-500' : 'text-surface-400'
+        }`}>
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{expiryLabel}</span>
+        </div>
 
+        {/* Coords */}
         <div className="flex items-center gap-2 mt-2 text-xs text-surface-300">
           <span>{listing.lat.toFixed(4)}, {listing.lon.toFixed(4)}</span>
         </div>
@@ -75,14 +88,20 @@ export default function ListingCard({ listing, onClaimed }: Props) {
             {error}
           </div>
         )}
-        {success && (
-          <div className="mt-3 card-bordered px-3 py-2 text-xs text-green-700 bg-green-50 border-green-100 animate-scale-in">
-            {success}
+        {claimResult && (
+          <div className="mt-3 card-bordered px-3 py-2.5 text-xs bg-green-50 border-green-100 animate-scale-in space-y-1">
+            <p className="font-bold text-green-700">Claimed successfully</p>
+            <p className="text-green-600">
+              <span className="font-medium">Coordination ID:</span> {claimResult.coordinationId}
+            </p>
+            <p className="text-green-600">
+              <span className="font-medium">Pickup at:</span> {claimResult.address}
+            </p>
           </div>
         )}
 
         {/* Claim buttons */}
-        {user?.role === 'Recipient' && !success && (
+        {user?.role === 'Recipient' && !claimResult && (
           <div className="mt-4 flex gap-2">
             <button
               disabled={claiming}
@@ -107,7 +126,6 @@ export default function ListingCard({ listing, onClaimed }: Props) {
         )}
       </div>
 
-      {/* Bottom hover glow */}
       <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary-500/0 to-transparent group-hover:via-primary-500/40 transition-all duration-500" />
     </div>
   );
