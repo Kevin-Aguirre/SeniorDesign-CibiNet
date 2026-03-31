@@ -1,18 +1,38 @@
-import { useState, useRef, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 
-export default function NewListing() {
+export default function EditListing() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [foodType, setFoodType] = useState('');
   const [quantity, setQuantity] = useState('');
   const [address, setAddress] = useState('');
   const [hours, setHours] = useState(24);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const imageFileRef = useRef<File | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    api.listings.detail(Number(id))
+      .then(listing => {
+        setFoodType(listing.food_type);
+        setQuantity(listing.quantity);
+        setAddress(listing.address_text);
+        const hoursLeft = Math.max(1, Math.round(
+          (new Date(listing.expiry_time).getTime() - Date.now()) / 3600000
+        ));
+        setHours(hoursLeft);
+        if (listing.image_url) setExistingImageUrl(listing.image_url);
+      })
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load listing'))
+      .finally(() => setFetching(false));
+  }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,10 +50,12 @@ export default function NewListing() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!id) return;
     setError('');
     setLoading(true);
     try {
-      await api.listings.create({
+      await api.listings.update({
+        listing_id: Number(id),
         food_type: foodType,
         quantity,
         address_text: address,
@@ -41,15 +63,24 @@ export default function NewListing() {
       }, imageFileRef.current);
       navigate('/my-listings');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create listing');
+      setError(err instanceof Error ? err.message : 'Failed to update listing');
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) {
+    return (
+      <div className="flex justify-center py-28">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-surface-200 border-t-primary-500" />
+      </div>
+    );
+  }
+
+  const displayImage = imagePreview || existingImageUrl;
+
   return (
     <div className="max-w-xl mx-auto px-6 py-10">
-      {/* Back + Header */}
       <div className="mb-8 animate-fade-up">
         <button
           onClick={() => navigate('/my-listings')}
@@ -61,9 +92,9 @@ export default function NewListing() {
           Back to listings
         </button>
         <h1 className="font-display text-3xl font-extrabold text-surface-950 tracking-tight">
-          New Donation
+          Edit Donation
         </h1>
-        <p className="text-surface-400 mt-2 text-sm">Share surplus food with people who need it.</p>
+        <p className="text-surface-400 mt-2 text-sm">Update your listing details.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 animate-fade-up-1">
@@ -94,7 +125,6 @@ export default function NewListing() {
               value={foodType}
               onChange={(e) => setFoodType(e.target.value)}
               className="input"
-              placeholder="e.g. Sandwiches, Canned Soup, Fresh Produce"
             />
           </div>
 
@@ -109,7 +139,6 @@ export default function NewListing() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 className="input"
-                placeholder="e.g. 20 servings"
               />
             </div>
             <div>
@@ -138,21 +167,33 @@ export default function NewListing() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-sm font-bold text-surface-950 font-display">Photo (optional)</h2>
+            <h2 className="text-sm font-bold text-surface-950 font-display">Photo</h2>
           </div>
 
-          {imagePreview ? (
+          {displayImage ? (
             <div className="relative">
-              <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
-              <button
-                type="button"
-                onClick={clearImage}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <img src={displayImage} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+              {imagePreview && (
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              <label className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg bg-black/60 text-white text-xs font-medium cursor-pointer hover:bg-black/80 transition-colors">
+                Replace
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-surface-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-all duration-200">
@@ -160,7 +201,6 @@ export default function NewListing() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               <span className="text-xs text-surface-400 font-medium">Click to upload a photo</span>
-              <span className="text-[10px] text-surface-300 mt-1">JPG, PNG, GIF, or WebP</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -194,25 +234,9 @@ export default function NewListing() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="input"
-              placeholder="123 Main St, New York, NY"
             />
             <p className="text-[11px] text-surface-300 mt-2">
-              This address will be geocoded automatically for map display.
-            </p>
-          </div>
-        </div>
-
-        {/* Safety note */}
-        <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(6, 182, 212, 0.15)' }}>
-            <svg className="w-4 h-4 text-primary-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-surface-900">Auto-expiry enabled</p>
-            <p className="text-xs text-surface-500 mt-0.5 leading-relaxed">
-              Your listing will automatically expire after {hours} hour{hours !== 1 ? 's' : ''} for food safety compliance.
+              If you change the address, the map location will be updated automatically.
             </p>
           </div>
         </div>
@@ -229,11 +253,11 @@ export default function NewListing() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Posting...
+                Saving...
               </span>
             ) : (
               <>
-                Post Donation
+                Save Changes
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>

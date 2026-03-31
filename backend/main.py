@@ -4,8 +4,45 @@ from controllers import RootController
 from controllers.system import run_cleanup
 import threading
 import time
+import os
 
-CLEANUP_INTERVAL_SECONDS = 300  # run safety pruning every 5 minutes
+CLEANUP_INTERVAL_SECONDS = 300
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+
+
+class StaticFileMiddleware:
+    """Serve uploaded images from the uploads directory."""
+
+    CONTENT_TYPES = {
+        '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+        '.png': 'image/png', '.gif': 'image/gif',
+        '.webp': 'image/webp',
+    }
+
+    def __init__(self, app, directory, url_prefix='/uploads'):
+        self.app = app
+        self.directory = directory
+        self.url_prefix = url_prefix
+
+    def __call__(self, environ, start_response):
+        path = environ.get('PATH_INFO', '')
+        if path.startswith(self.url_prefix + '/'):
+            filename = os.path.basename(path[len(self.url_prefix) + 1:])
+            filepath = os.path.join(self.directory, filename)
+            if os.path.isfile(filepath):
+                ext = os.path.splitext(filename)[1].lower()
+                ct = self.CONTENT_TYPES.get(ext, 'application/octet-stream')
+                with open(filepath, 'rb') as f:
+                    data = f.read()
+                start_response('200 OK', [
+                    ('Content-Type', ct),
+                    ('Content-Length', str(len(data))),
+                    ('Cache-Control', 'public, max-age=3600'),
+                ])
+                return [data]
+            start_response('404 Not Found', [('Content-Type', 'text/plain')])
+            return [b'Not found']
+        return self.app(environ, start_response)
 
 
 def cleanup_scheduler():
@@ -27,8 +64,10 @@ config['session.key'] = 'cibinet_session'
 config['session.validate_key'] = 'cibinet-dev-secret-key'
 config['session.secure'] = False
 application = config.make_wsgi_app()
+application = StaticFileMiddleware(application, UPLOAD_DIR)
 
 if __name__ == "__main__":
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
     scheduler = threading.Thread(target=cleanup_scheduler, daemon=True)
     scheduler.start()
     print("CibiNet API Server online at http://localhost:8080/api/")

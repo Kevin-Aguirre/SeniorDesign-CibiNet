@@ -10,6 +10,7 @@ import NewListing from './pages/NewListing';
 import MyListings from './pages/MyListings';
 import MyClaims from './pages/MyClaims';
 import Notifications from './pages/Notifications';
+import EditListing from './pages/EditListing';
 
 export default function App() {
   return (
@@ -31,6 +32,10 @@ export default function App() {
             <Route
               path="/my-listings"
               element={<ProtectedRoute><MyListings /></ProtectedRoute>}
+            />
+            <Route
+              path="/edit-listing/:id"
+              element={<ProtectedRoute><EditListing /></ProtectedRoute>}
             />
             <Route
               path="/my-claims"

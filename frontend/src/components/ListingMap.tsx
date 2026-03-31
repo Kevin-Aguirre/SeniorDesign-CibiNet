@@ -52,6 +52,9 @@ function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: () => v
 
   return (
     <div style={{ minWidth: 180 }}>
+      {listing.image_url && (
+        <img src={listing.image_url} alt={listing.food} style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 4, marginBottom: 6 }} />
+      )}
       <p style={{ fontWeight: 700, marginBottom: 2 }}>{listing.food}</p>
       <p style={{ color: '#78716c', fontSize: 13, marginBottom: 2 }}>{listing.quantity}</p>
       <p style={{ color: '#a8a29e', fontSize: 12, marginBottom: 8 }}>{formatExpiry(listing.expiry_time)}</p>

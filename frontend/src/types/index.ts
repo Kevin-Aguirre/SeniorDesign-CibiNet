@@ -5,7 +5,6 @@ export interface User {
   created_at: string;
 }
 
-// Shape returned by GET /api/listings/nearby (ListingMapSchema)
 export interface Listing {
   id: number;
   food: string;
@@ -13,9 +12,9 @@ export interface Listing {
   lat: number;
   lon: number;
   expiry_time: string;
+  image_url?: string;
 }
 
-// Shape returned by GET /api/users/my_listings (ListingSchema)
 export interface ListingDetail {
   listing_id: number;
   food_type: string;
@@ -23,9 +22,9 @@ export interface ListingDetail {
   status: 'available' | 'claimed' | 'expired';
   address_text: string;
   expiry_time: string;
+  image_url?: string;
 }
 
-// Shape returned by GET /api/claims/* (ClaimSchema)
 export interface Claim {
   claim_id: number;
   coordination_id: string;
@@ -43,6 +42,7 @@ export interface Notification {
   id: number;
   type: string;
   message: string;
+  is_read: boolean;
   sent_at: string;
 }
 
