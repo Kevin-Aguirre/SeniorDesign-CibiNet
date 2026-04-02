@@ -7,18 +7,28 @@ import hashlib
 class AuthController(TGController):
     
     @expose('json')
-    def register(self, email, password, role, **kwargs):
+    def register(self, email, password, role, username=None, **kwargs):
         """Register a new User (Donor or Recipient)"""
         # 1. Validation
-        if not email or not password or role not in ['Donor', 'Recipient']:
+        if not email or not password or role not in ['Donor', 'Recipient'] or not username:
             response.status = 400
-            return {"error": "Invalid email, password, or role"}
+            return {"error": "Invalid username, email, password, or role"}
+
+        username = str(username).strip()
+        if not username:
+            response.status = 400
+            return {"error": "Invalid username"}
 
         # Check if user already exists
         exists = session.query(User).filter_by(email=email).first()
         if exists:
             response.status = 409
-            return {"error": "User already exists"}
+            return {"error": "Email already exists"}
+
+        exists_username = session.query(User).filter_by(username=username).first()
+        if exists_username:
+            response.status = 409
+            return {"error": "Username already exists"}
 
         # 2. Hash Password (Simple SHA256 for this setup)
         # Note: In production, use bcrypt or passlib!
@@ -26,6 +36,7 @@ class AuthController(TGController):
 
         try:
             new_user = User(
+                username=username,
                 email=email,
                 password_hash=hashed,
                 role=role

@@ -95,17 +95,27 @@ export default function Layout() {
                 >
                   Notifications
                 </Link>
+                <Link
+                  to="/profile"
+                  className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                    isActive('/profile')
+                      ? 'bg-surface-950 text-white'
+                      : 'text-surface-400 hover:text-surface-900'
+                  }`}
+                >
+                  Profile
+                </Link>
 
                 <div className="w-px h-4 bg-surface-200 mx-3" />
 
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-full bg-surface-950 flex items-center justify-center">
                     <span className="text-primary-500 text-[10px] font-bold">
-                      {user.email ? user.email[0].toUpperCase() : 'U'}
+                      {user.username ? user.username[0].toUpperCase() : 'U'}
                     </span>
                   </div>
                   <div className="hidden sm:block leading-none">
-                    <p className="text-[12px] font-medium text-surface-700">{user.email || 'User'}</p>
+                    <p className="text-[12px] font-medium text-surface-700">{user.username || user.email || 'User'}</p>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-primary-700 mt-0.5">{user.role}</p>
                   </div>
                   <button

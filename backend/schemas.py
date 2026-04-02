@@ -11,6 +11,7 @@ class UserSchema:
 
     def __init__(self, user):
         self.user_id = user.user_id
+        self.username = user.username
         self.email = user.email
         self.role = user.role
         self.created_at = user.created_at.isoformat()
@@ -18,6 +19,7 @@ class UserSchema:
     def to_dict(self):
         return {
             "user_id": self.user_id,
+            "username": self.username,
             "email": self.email,
             "role": self.role,
             "created_at": self.created_at

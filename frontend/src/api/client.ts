@@ -20,8 +20,8 @@ async function request<T>(path: string, params?: Record<string, string | number>
 
 export const api = {
   auth: {
-    register: (email: string, password: string, role: string) =>
-      request<{ status: string; user_id: number }>('/auth/register', { email, password, role }),
+    register: (email: string, password: string, role: string, username: string) =>
+      request<{ status: string; user_id: number }>('/auth/register', { email, password, role, username }),
 
     login: (email: string, password: string) =>
       request<{ status: string; user: User }>('/auth/login', { email, password }),
@@ -34,6 +34,8 @@ export const api = {
 
   users: {
     me: () => request<User>('/users/me'),
+    updateProfile: (params: { username?: string; email?: string; current_password?: string; new_password?: string }) =>
+      request<User>('/users/update', params),
     myListings: () => request<{ listings: ListingDetail[] }>('/users/my_listings'),
   },
 

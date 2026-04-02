@@ -10,6 +10,7 @@ import NewListing from './pages/NewListing';
 import MyListings from './pages/MyListings';
 import MyClaims from './pages/MyClaims';
 import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -39,6 +40,10 @@ export default function App() {
             <Route
               path="/notifications"
               element={<ProtectedRoute><Notifications /></ProtectedRoute>}
+            />
+            <Route
+              path="/profile"
+              element={<ProtectedRoute><Profile /></ProtectedRoute>}
             />
             <Route
               path="*"
