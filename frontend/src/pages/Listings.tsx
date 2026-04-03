@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -15,12 +15,15 @@ export default function Listings() {
   const [error, setError] = useState('');
   const [view, setView] = useState<View>('list');
   const [foodTypeFilter, setFoodTypeFilter] = useState('');
+  const [geoStatus, setGeoStatus] = useState<'detecting' | 'granted' | 'denied'>('detecting');
+  const coordsRef = useRef({ lat: 40.7128, lon: -74.006 });
 
   const fetchListings = async (filter?: string) => {
     setLoading(true);
     setError('');
     try {
-      const data = await api.listings.nearby(40.7128, -74.006, 5, filter || undefined);
+      const { lat, lon } = coordsRef.current;
+      const data = await api.listings.nearby(lat, lon, 50, filter || undefined);
       setListings(data.listings);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load listings');
@@ -30,7 +33,23 @@ export default function Listings() {
   };
 
   useEffect(() => {
-    fetchListings();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          coordsRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          setGeoStatus('granted');
+          fetchListings();
+        },
+        () => {
+          setGeoStatus('denied');
+          fetchListings();
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      setGeoStatus('denied');
+      fetchListings();
+    }
   }, []);
 
   const handleFilterSubmit = (e: React.FormEvent) => {
@@ -51,6 +70,11 @@ export default function Listings() {
               ? 'Searching nearby...'
               : `${listings.length} listing${listings.length !== 1 ? 's' : ''} near you`}
           </p>
+          {geoStatus === 'denied' && !loading && (
+            <p className="text-xs text-orange-500 mt-1">
+              Location access denied — showing results near default location.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => fetchListings(foodTypeFilter || undefined)} className="btn-ghost group">
@@ -138,7 +162,9 @@ export default function Listings() {
             <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-surface-200 border-t-primary-500" />
             <div className="absolute inset-0 h-12 w-12 rounded-full animate-pulse" style={{ background: 'rgba(6, 182, 212, 0.1)' }} />
           </div>
-          <p className="text-sm text-surface-400 font-medium">Finding donations nearby...</p>
+          <p className="text-sm text-surface-400 font-medium">
+            {geoStatus === 'detecting' ? 'Detecting your location...' : 'Finding donations nearby...'}
+          </p>
         </div>
       ) : listings.length === 0 ? (
         <div className="text-center py-28 animate-fade-up">

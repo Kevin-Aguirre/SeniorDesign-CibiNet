@@ -29,6 +29,7 @@ class Listing(Base):
     latitude = Column(Numeric(9, 6))
     longitude = Column(Numeric(9, 6))
     address_text = Column(Text, nullable=False)
+    image_filename = Column(String(255), nullable=True)
     
     donor = relationship("User", backref="listings")
 
@@ -51,6 +52,7 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     type = Column(String(50), nullable=False)
     message_body = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
     sent_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class AuditLog(Base):

@@ -1,10 +1,23 @@
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      api.notifications.unreadCount()
+        .then(data => setUnreadCount(data.unread_count))
+        .catch(() => {});
+    } else {
+      setUnreadCount(0);
+    }
+  }, [user, location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -87,13 +100,18 @@ export default function Layout() {
                 )}
                 <Link
                   to="/notifications"
-                  className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                  className={`relative px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
                     isActive('/notifications')
                       ? 'bg-surface-950 text-white'
                       : 'text-surface-400 hover:text-surface-900'
                   }`}
                 >
                   Notifications
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-black px-1">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
 
                 <div className="w-px h-4 bg-surface-200 mx-3" />

@@ -12,7 +12,6 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
     """
     coordination_id = f"COORD-{claim.claim_id}"
 
-    # Notification for the Donor
     donor_msg = (
         f"Your listing '{listing.food_type}' (Qty: {listing.quantity}) has been claimed. "
         f"Coordination ID: {coordination_id}. "
@@ -25,7 +24,6 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
         message_body=donor_msg
     )
 
-    # Notification for the Recipient
     recipient_msg = (
         f"You have successfully claimed '{listing.food_type}' (Qty: {listing.quantity}). "
         f"Coordination ID: {coordination_id}. "
@@ -41,7 +39,6 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
 
     session.add(donor_notification)
     session.add(recipient_notification)
-    # Caller is responsible for committing the session
 
 
 class NotificationController(TGController):
@@ -59,3 +56,59 @@ class NotificationController(TGController):
         ).order_by(Notification.sent_at.desc()).all()
 
         return {"notifications": [NotificationSchema(n).to_dict() for n in notifications]}
+
+    @expose('json')
+    def mark_read(self, notification_id):
+        """Mark a single notification as read."""
+        user_id = tg_session.get('user_id')
+        if not user_id:
+            response.status = 401
+            return {"error": "Not authenticated"}
+
+        notif = session.query(Notification).filter_by(
+            notification_id=notification_id, user_id=user_id
+        ).first()
+        if not notif:
+            response.status = 404
+            return {"error": "Notification not found"}
+
+        try:
+            notif.is_read = True
+            session.commit()
+            return {"status": "success"}
+        except Exception as e:
+            session.rollback()
+            response.status = 500
+            return {"error": "Database error", "details": str(e)}
+
+    @expose('json')
+    def mark_all_read(self):
+        """Mark all notifications for the current user as read."""
+        user_id = tg_session.get('user_id')
+        if not user_id:
+            response.status = 401
+            return {"error": "Not authenticated"}
+
+        try:
+            session.query(Notification).filter_by(
+                user_id=user_id, is_read=False
+            ).update({Notification.is_read: True})
+            session.commit()
+            return {"status": "success"}
+        except Exception as e:
+            session.rollback()
+            response.status = 500
+            return {"error": "Database error", "details": str(e)}
+
+    @expose('json')
+    def unread_count(self):
+        """Get the count of unread notifications for the current user."""
+        user_id = tg_session.get('user_id')
+        if not user_id:
+            response.status = 401
+            return {"error": "Not authenticated"}
+
+        count = session.query(Notification).filter_by(
+            user_id=user_id, is_read=False
+        ).count()
+        return {"unread_count": count}

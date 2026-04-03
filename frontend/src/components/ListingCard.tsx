@@ -45,15 +45,27 @@ export default function ListingCard({ listing, onClaimed }: Props) {
 
   return (
     <div className="card-elevated group p-0 overflow-hidden">
+      {listing.image_url && (
+        <div className="h-40 w-full overflow-hidden bg-surface-100">
+          <img
+            src={listing.image_url}
+            alt={listing.food}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      )}
+
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-surface-950 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
-              <svg className="w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
+            {!listing.image_url && (
+              <div className="w-11 h-11 rounded-2xl bg-surface-950 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
+                <svg className="w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            )}
             <div>
               <h3 className="text-base font-bold text-surface-950 leading-snug font-display">
                 {listing.food}
@@ -75,11 +87,6 @@ export default function ListingCard({ listing, onClaimed }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{expiryLabel}</span>
-        </div>
-
-        {/* Coords */}
-        <div className="flex items-center gap-2 mt-2 text-xs text-surface-300">
-          <span>{listing.lat.toFixed(4)}, {listing.lon.toFixed(4)}</span>
         </div>
 
         {/* Feedback */}

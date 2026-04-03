@@ -23,12 +23,25 @@ export default function MyListings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchListings = () => {
+    setLoading(true);
     api.users.myListings()
       .then(data => setListings(data.listings))
       .catch(err => setError(err instanceof Error ? err.message : 'Failed to load listings'))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchListings(); }, []);
+
+  const handleDelete = async (listingId: number) => {
+    if (!confirm('Are you sure you want to delete this listing? This cannot be undone.')) return;
+    try {
+      await api.listings.delete(listingId);
+      setListings(prev => prev.filter(l => l.listing_id !== listingId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete listing');
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
@@ -71,26 +84,53 @@ export default function MyListings() {
           {listings.map((listing, i) => (
             <div
               key={listing.listing_id}
-              className="card-elevated p-5 flex items-start justify-between gap-4 animate-fade-up"
+              className="card-elevated p-5 animate-fade-up"
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="flex items-start gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-surface-950 flex items-center justify-center shrink-0">
-                  <svg className="w-4.5 h-4.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 min-w-0">
+                  {listing.image_url ? (
+                    <img
+                      src={listing.image_url}
+                      alt={listing.food_type}
+                      className="w-12 h-12 rounded-xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-surface-950 flex items-center justify-center shrink-0">
+                      <svg className="w-4.5 h-4.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-bold text-surface-950 font-display">{listing.food_type}</p>
+                    <p className="text-sm text-surface-400 mt-0.5">{listing.quantity}</p>
+                    <p className="text-xs text-surface-300 mt-1 truncate">{listing.address_text}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-surface-950 font-display">{listing.food_type}</p>
-                  <p className="text-sm text-surface-400 mt-0.5">{listing.quantity}</p>
-                  <p className="text-xs text-surface-300 mt-1 truncate">{listing.address_text}</p>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className={`badge font-semibold ${STATUS_STYLES[listing.status]}`}>
+                    {listing.status}
+                  </span>
+                  <span className="text-xs text-surface-400">{formatExpiry(listing.expiry_time)}</span>
+                  {listing.status === 'available' && (
+                    <div className="flex gap-1.5 mt-1">
+                      <Link
+                        to={`/edit-listing/${listing.listing_id}`}
+                        className="text-[11px] font-medium text-surface-400 hover:text-primary-600 transition-colors"
+                      >
+                        Edit
+                      </Link>
+                      <span className="text-surface-200">|</span>
+                      <button
+                        onClick={() => handleDelete(listing.listing_id)}
+                        className="text-[11px] font-medium text-surface-400 hover:text-red-500 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className={`badge font-semibold ${STATUS_STYLES[listing.status]}`}>
-                  {listing.status}
-                </span>
-                <span className="text-xs text-surface-400">{formatExpiry(listing.expiry_time)}</span>
               </div>
             </div>
           ))}

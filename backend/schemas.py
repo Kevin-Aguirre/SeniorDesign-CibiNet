@@ -38,9 +38,10 @@ class ListingMapSchema:
         self.lat = float(listing.latitude)
         self.lon = float(listing.longitude)
         self.expiry_time = listing.expiry_time.isoformat()
+        self.image_url = f"/uploads/{listing.image_filename}" if listing.image_filename else None
 
     def to_dict(self):
-        return {
+        d = {
             "id": self.listing_id,
             "food": self.food_type,
             "quantity": self.quantity,
@@ -48,6 +49,9 @@ class ListingMapSchema:
             "lon": self.lon,
             "expiry_time": self.expiry_time
         }
+        if self.image_url:
+            d["image_url"] = self.image_url
+        return d
 
 
 class ListingSchema:
@@ -60,9 +64,10 @@ class ListingSchema:
         self.status = listing.status
         self.address_text = listing.address_text
         self.expiry_time = listing.expiry_time.isoformat()
+        self.image_url = f"/uploads/{listing.image_filename}" if listing.image_filename else None
 
     def to_dict(self):
-        return {
+        d = {
             "listing_id": self.listing_id,
             "food_type": self.food_type,
             "quantity": self.quantity,
@@ -70,6 +75,9 @@ class ListingSchema:
             "address_text": self.address_text,
             "expiry_time": self.expiry_time
         }
+        if self.image_url:
+            d["image_url"] = self.image_url
+        return d
 
 
 class LogisticsPacketSchema:
@@ -134,6 +142,7 @@ class NotificationSchema:
         self.notification_id = notification.notification_id
         self.type = notification.type
         self.message_body = notification.message_body
+        self.is_read = notification.is_read
         self.sent_at = notification.sent_at.isoformat()
 
     def to_dict(self):
@@ -141,6 +150,7 @@ class NotificationSchema:
             "id": self.notification_id,
             "type": self.type,
             "message": self.message_body,
+            "is_read": self.is_read,
             "sent_at": self.sent_at
         }
 
