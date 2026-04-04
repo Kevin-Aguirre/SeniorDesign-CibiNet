@@ -1,0 +1,104 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Course: 		CS 4523
+Semester: 		Spring 2026
+Advisor: 		Professor Strauss
+
+Project Name: 		CibiNet 
+Team members: 	Kevin Aguirre 	kaa9659 	kaa9659@nyu.edu
+Drastansh Nadola 	dn2286 	dn2286@nyu.edu
+Mattias Larsson 	ml8910 	ml8910@nyu.edu
+Terry Li 		hl5031 	hl5031@nyu.edu
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Motivation
+Large amounts of edible food are wasted daily by restaurants, grocery stores, and individuals due to overproduction, strict inventory policies, and unpredictable demand. Meanwhile, food banks and shelters experience shortages or delays in acquiring food leading to inefficiencies in distribution for an urgent humanitarian need. Existing donation processes are often slow, manual, and poorly coordinated, making it difficult to match surplus food with organizations that need it most in a timely manner. 
+
+Food insecurity remains a significant problem in urban areas, while food waste continues to rise. Improving the speed and efficiency of food redistribution can reduce waste, lower operational costs for charities, and provide for consistent access to food for vulnerable populations. A real-time, data-driven system can significantly improve how surplus goods are identified, communicated, and allocated. 
+2. Proposed Project Description 
+2.1 High-Level Overview 
+The proposed system, CibiNet, is a web-based platform that enables real-time coordination between food donors and food banks or shelters. Donors publish food availability while food banks can browse and claim nearby donations through a centralized system. The system supports multiple user roles, each with distinct capabilities, while maintaining a single core workflow: Donors can publish their availability, while food banks can view and claim donations. 
+2.2. User Roles 
+2.2.1 Individual Donors 
+Individuals can donate small quantities of non-perishable food items like canned goods or packaged foods. These donations are drop-off only, meaning individuals deliver the food to a selected food bank or shelter after a claim is made. 
+2.2.2 Organizational Donors (Restaurants & Grocery Stores)
+Organizations are able to publish larger, bulk donations. They can manage lists of available items, quantities, and expiration windows. Donations can be marked as either pickup or drop-off, depending on the organization’s capabilities. 
+2.2.3 Food Banks / Shelters
+Food banks can browse available donations based on location and availability. They may claim donations, after which the donation becomes unavailable to other food banks. 
+2.3 Core System Features 
+Real-time donation publishing 
+Atomic donation claiming to prevent double allocation 
+Location-based filtering of available donations 
+Automatic expiration of unclaimed donations 
+Audit logs of donation claims 
+Claim confirmation notifications
+2.4 System Architecture 
+The system is designed as a distributed web application with the following components: 
+Frontend: Web interface for donors and food banks 
+Backend: Handles business logic, validation, and concurrency control 
+Database: Stores users, organizations, donations, and claims 
+Background Workers: Handle donation expiration and cleanup 
+3. Related Goals
+This project aims to achieve the following objectives: 
+Design and implement a distributed, role-based system 
+Apply concurrency control techniques to prevent race conditions 
+Build a scalable backend capable of handling real-time updates. 
+Explore faulty tolerance through transactional updates and retries. 
+Gain experience with system design documentation and implementation 
+4. Deliverables 
+4.1 Project Proposal 
+This document, outlining the system motivation, design, and goals.
+4.2 Project Information Description 
+A concise overview of the system architecture, technologies used, and system scope. 
+4.3 Software System Design Specification (SSDS)
+The Software System Design Specification will be delivered in three phases, the domain, the requirements and analysis, and the design phase. 
+4.3.1 Domain 
+Identification of system entities (users, organizations, donations, claims)
+Role definitions and permissions 
+System boundaries and assumptions 
+4.3.2 Requirements/Analysis 
+Functional requirements (donation creation, claiming, email notifier)
+Non-functional requirements (performance, consistency, security)
+Use cases and sequence diagrams 
+4.3.3 Design 
+System Architecture Diagrams 
+Database Schema 
+API Endpoint definitions  
+Concurrency and consistency mechanism outline
+4.4 Implementation 
+Fully-functional and scalable backend and frontend  
+Well-documented source code 
+A demonstration-ready system with sample data 
+4.5 Presentation and Demonstration
+Live demonstration of the system 
+Explanation of design decisions and trade-offs 
+Discussion of concurrency handling and system limitations 
+5. Conclusion 
+Cibinet will apply software engineering principles and techniques associated with distributed systems to address a real-world coordination dilemma. Having a realistic, yet constrained model of food donation will help ensure food security for urban populations. 
