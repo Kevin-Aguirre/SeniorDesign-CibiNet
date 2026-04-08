@@ -1,7 +1,11 @@
 export interface User {
   user_id: number;
   email: string;
-  role: 'Donor' | 'Recipient';
+  role: 'Donor' | 'Recipient' | 'Admin';
+  is_verified: boolean;
+  is_suspended: boolean;
+  suspension_reason: string | null;
+  suspended_at: string | null;
   created_at: string;
 }
 
@@ -51,4 +55,33 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   message?: string;
   [key: string]: T | string | undefined;
+}
+
+export interface ClaimDispute {
+  dispute_id: number;
+  claim_id: number;
+  reporter_id: number;
+  reporter_email: string | null;
+  reason: string;
+  details: string | null;
+  status: 'open' | 'reviewed' | 'resolved' | 'rejected';
+  resolution_note: string | null;
+  reviewed_by: number | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export interface SuspiciousActivity {
+  activity_id: number;
+  user_id: number | null;
+  user_email: string | null;
+  claim_id: number | null;
+  activity_type: string;
+  severity: 'low' | 'medium' | 'high';
+  details: string | null;
+  status: 'open' | 'reviewed' | 'dismissed';
+  reviewed_by: number | null;
+  review_note: string | null;
+  detected_at: string;
+  reviewed_at: string | null;
 }

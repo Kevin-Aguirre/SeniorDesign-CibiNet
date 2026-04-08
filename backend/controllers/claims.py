@@ -1,9 +1,15 @@
 from tg import expose, TGController, session as tg_session, response
-from model import session, Claim, Listing, AuditLog
-from schemas import ClaimSchema
+from model import session, Claim, Listing, AuditLog, ClaimDispute, SuspiciousActivity, User
+from schemas import ClaimSchema, ClaimDisputeSchema
 
 
 class ClaimController(TGController):
+    def _blocked_if_suspended(self, user_id):
+        user = session.query(User).filter_by(user_id=user_id).first()
+        if user and user.is_suspended:
+            response.status = 403
+            return {"error": f"Account suspended: {user.suspension_reason or 'Contact support'}"}
+        return None
 
     @expose('json')
     def mine(self):
@@ -16,6 +22,9 @@ class ClaimController(TGController):
         if tg_session.get('user_role') != 'Recipient':
             response.status = 403
             return {"error": "Only Recipients can view claims"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         claims = session.query(Claim).filter_by(recipient_id=user_id).all()
 
@@ -38,6 +47,9 @@ class ClaimController(TGController):
         if claim.recipient_id != user_id and claim.listing.donor_id != user_id:
             response.status = 403
             return {"error": "Access denied"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         return ClaimSchema(claim).to_dict()
 
@@ -62,6 +74,9 @@ class ClaimController(TGController):
 
         if claim.safety_ack_received:
             return {"status": "success", "message": "Safety acknowledgment already recorded"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         try:
             claim.safety_ack_received = True
@@ -90,6 +105,9 @@ class ClaimController(TGController):
         if not claim:
             response.status = 404
             return {"error": "Claim not found or does not belong to you"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         try:
             listing = session.query(Listing).filter_by(
@@ -106,6 +124,62 @@ class ClaimController(TGController):
             ))
             session.commit()
             return {"status": "success", "message": "Claim cancelled, listing is available again"}
+        except Exception as e:
+            session.rollback()
+            response.status = 500
+            return {"error": "Database error", "details": str(e)}
+
+    @expose('json')
+    def report_dispute(self, claim_id, reason, details=None):
+        user_id = tg_session.get('user_id')
+        if not user_id:
+            response.status = 401
+            return {"error": "Not authenticated"}
+
+        claim = session.query(Claim).filter_by(claim_id=claim_id).first()
+        if not claim:
+            response.status = 404
+            return {"error": "Claim not found"}
+
+        if claim.recipient_id != user_id and claim.listing.donor_id != user_id:
+            response.status = 403
+            return {"error": "Only involved claim users can report a dispute"}
+
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
+
+        try:
+            dispute = ClaimDispute(
+                claim_id=claim.claim_id,
+                reporter_id=user_id,
+                reason=reason,
+                details=details
+            )
+            session.add(dispute)
+            session.flush()
+            session.add(SuspiciousActivity(
+                user_id=claim.recipient_id,
+                claim_id=claim.claim_id,
+                activity_type='claim_dispute_reported',
+                severity='medium',
+                details=f"Dispute #{dispute.dispute_id} reported: {reason}"
+            ))
+            session.add(SuspiciousActivity(
+                user_id=claim.listing.donor_id,
+                claim_id=claim.claim_id,
+                activity_type='claim_dispute_reported',
+                severity='medium',
+                details=f"Dispute #{dispute.dispute_id} reported: {reason}"
+            ))
+            session.add(AuditLog(
+                user_id=user_id,
+                action='claim_dispute_reported',
+                entity_type='claim_dispute',
+                entity_id=dispute.dispute_id
+            ))
+            session.commit()
+            return {"status": "success", "dispute": ClaimDisputeSchema(dispute).to_dict()}
         except Exception as e:
             session.rollback()
             response.status = 500

@@ -28,9 +28,10 @@ export default function Layout() {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const isLanding = location.pathname === '/';
   const isDark = (isLanding && !user) || isAuthPage;
+  const landingGuest = isLanding && !user;
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-50">
+    <div className={`min-h-screen flex flex-col ${landingGuest ? 'bg-black' : 'bg-surface-50'}`}>
       {!isAuthPage && (
         <header className={`sticky top-0 z-50 ${
           isDark
@@ -98,6 +99,18 @@ export default function Layout() {
                     My Claims
                   </Link>
                 )}
+                {user.role === 'Admin' && (
+                  <Link
+                    to="/admin"
+                    className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                      isActive('/admin')
+                        ? 'bg-surface-950 text-white'
+                        : 'text-surface-400 hover:text-surface-900'
+                    }`}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to="/notifications"
                   className={`relative px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
@@ -156,7 +169,7 @@ export default function Layout() {
         </header>
       )}
 
-      <main className="flex-1">
+      <main className={`flex-1 ${landingGuest ? 'bg-black' : ''}`}>
         <Outlet />
       </main>
 

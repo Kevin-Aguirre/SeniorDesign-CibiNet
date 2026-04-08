@@ -1,4 +1,12 @@
-import type { User, Listing, ListingDetail, Claim, Notification } from '../types';
+import type {
+  User,
+  Listing,
+  ListingDetail,
+  Claim,
+  Notification,
+  ClaimDispute,
+  SuspiciousActivity
+} from '../types';
 
 const BASE = '/api';
 
@@ -124,6 +132,12 @@ export const api = {
       post<{ status: string; message: string }>('/claims/acknowledge', { claim_id: claimId }),
     cancel: (claimId: number) =>
       post<{ status: string; message: string }>('/claims/cancel', { claim_id: claimId }),
+    reportDispute: (claimId: number, reason: string, details?: string) =>
+      post<{ status: string; dispute: ClaimDispute }>('/claims/report_dispute', {
+        claim_id: claimId,
+        reason,
+        details: details || ''
+      }),
   },
 
   notifications: {
@@ -138,5 +152,59 @@ export const api = {
 
   system: {
     cleanup: () => post<{ expired_items_removed: number }>('/system/cleanup'),
+  },
+
+  admin: {
+    overview: () =>
+      get<{
+        admin_id: number;
+        stats: {
+          open_disputes: number;
+          open_suspicious_activities: number;
+          suspended_users: number;
+          verified_users: number;
+        };
+      }>('/admin/overview'),
+    users: () => get<{ users: User[] }>('/admin/users'),
+    setVerification: (userId: number, verified: boolean) =>
+      post<{ status: string; user: User }>('/admin/set_verification', {
+        user_id: userId,
+        verified: String(verified)
+      }),
+    suspendUser: (userId: number, reason: string) =>
+      post<{ status: string; user: User }>('/admin/suspend_user', {
+        user_id: userId,
+        reason
+      }),
+    unsuspendUser: (userId: number) =>
+      post<{ status: string; user: User }>('/admin/unsuspend_user', { user_id: userId }),
+    disputes: () => get<{ disputes: ClaimDispute[] }>('/admin/disputes'),
+    reviewDispute: (disputeId: number, status: 'reviewed' | 'resolved' | 'rejected', resolutionNote?: string) =>
+      post<{ status: string; dispute: ClaimDispute }>('/admin/review_dispute', {
+        dispute_id: disputeId,
+        status,
+        resolution_note: resolutionNote || ''
+      }),
+    suspicious: () => get<{ activities: SuspiciousActivity[] }>('/admin/suspicious'),
+    reviewSuspicious: (activityId: number, status: 'reviewed' | 'dismissed', reviewNote?: string) =>
+      post<{ status: string; activity: SuspiciousActivity }>('/admin/review_suspicious', {
+        activity_id: activityId,
+        status,
+        review_note: reviewNote || ''
+      }),
+    flagSuspicious: (payload: {
+      user_id?: number;
+      claim_id?: number;
+      activity_type: string;
+      severity?: 'low' | 'medium' | 'high';
+      details?: string;
+    }) =>
+      post<{ status: string; activity: SuspiciousActivity }>('/admin/flag_suspicious', {
+        user_id: payload.user_id ?? '',
+        claim_id: payload.claim_id ?? '',
+        activity_type: payload.activity_type,
+        severity: payload.severity || 'medium',
+        details: payload.details || ''
+      }),
   },
 };

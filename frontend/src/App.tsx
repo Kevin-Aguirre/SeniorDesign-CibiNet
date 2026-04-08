@@ -11,6 +11,7 @@ import MyListings from './pages/MyListings';
 import MyClaims from './pages/MyClaims';
 import Notifications from './pages/Notifications';
 import EditListing from './pages/EditListing';
+import Admin from './pages/Admin';
 
 export default function App() {
   return (
@@ -44,6 +45,10 @@ export default function App() {
             <Route
               path="/notifications"
               element={<ProtectedRoute><Notifications /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin"
+              element={<ProtectedRoute allowedRoles={['Admin']}><Admin /></ProtectedRoute>}
             />
             <Route
               path="*"

@@ -15,7 +15,11 @@ class User(Base):
     user_id = Column(Integer, primary_key=True)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
-    role = Column(String(20), nullable=False) # 'Donor' or 'Recipient'
+    role = Column(String(20), nullable=False) # 'Donor', 'Recipient', or 'Admin'
+    is_verified = Column(Boolean, default=False)
+    is_suspended = Column(Boolean, default=False)
+    suspension_reason = Column(Text, nullable=True)
+    suspended_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Listing(Base):
@@ -63,3 +67,38 @@ class AuditLog(Base):
     entity_type = Column(String(50), nullable=False)  # 'listing' or 'claim'
     entity_id = Column(Integer, nullable=False)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class ClaimDispute(Base):
+    __tablename__ = 'claim_disputes'
+    dispute_id = Column(Integer, primary_key=True)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=False)
+    reporter_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    reason = Column(String(120), nullable=False)
+    details = Column(Text, nullable=True)
+    status = Column(String(30), default='open')  # 'open', 'reviewed', 'resolved', 'rejected'
+    resolution_note = Column(Text, nullable=True)
+    reviewed_by = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    reviewed_at = Column(DateTime, nullable=True)
+
+    claim = relationship("Claim")
+    reporter = relationship("User", foreign_keys=[reporter_id])
+
+
+class SuspiciousActivity(Base):
+    __tablename__ = 'suspicious_activities'
+    activity_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True)
+    activity_type = Column(String(80), nullable=False)
+    severity = Column(String(20), default='medium')  # 'low', 'medium', 'high'
+    details = Column(Text, nullable=True)
+    status = Column(String(30), default='open')  # 'open', 'reviewed', 'dismissed'
+    reviewed_by = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    review_note = Column(Text, nullable=True)
+    detected_at = Column(DateTime, default=datetime.datetime.utcnow)
+    reviewed_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id])
+    claim = relationship("Claim")

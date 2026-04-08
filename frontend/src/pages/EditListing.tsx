@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import { parseApiUtc } from '../utils/dateTime';
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,7 @@ export default function EditListing() {
         setQuantity(listing.quantity);
         setAddress(listing.address_text);
         const hoursLeft = Math.max(1, Math.round(
-          (new Date(listing.expiry_time).getTime() - Date.now()) / 3600000
+          (parseApiUtc(listing.expiry_time).getTime() - Date.now()) / 3600000
         ));
         setHours(hoursLeft);
         if (listing.image_url) setExistingImageUrl(listing.image_url);

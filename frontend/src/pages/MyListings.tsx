@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import type { ListingDetail } from '../types';
+import { parseApiUtc } from '../utils/dateTime';
 
 const STATUS_STYLES: Record<ListingDetail['status'], string> = {
   available: 'text-green-700 bg-green-50',
@@ -10,7 +11,7 @@ const STATUS_STYLES: Record<ListingDetail['status'], string> = {
 };
 
 function formatExpiry(isoString: string): string {
-  const diff = new Date(isoString).getTime() - Date.now();
+  const diff = parseApiUtc(isoString).getTime() - Date.now();
   const hours = Math.floor(diff / 3600000);
   if (hours < 0) return 'Expired';
   if (hours < 1) return 'Expires soon';
@@ -114,17 +115,17 @@ export default function MyListings() {
                   </span>
                   <span className="text-xs text-surface-400">{formatExpiry(listing.expiry_time)}</span>
                   {listing.status === 'available' && (
-                    <div className="flex gap-1.5 mt-1">
+                    <div className="flex items-center gap-2 mt-1">
                       <Link
                         to={`/edit-listing/${listing.listing_id}`}
-                        className="text-[11px] font-medium text-surface-400 hover:text-primary-600 transition-colors"
+                        className="inline-flex items-center text-[11px] font-medium leading-none text-surface-400 hover:text-primary-600 transition-colors"
                       >
                         Edit
                       </Link>
-                      <span className="text-surface-200">|</span>
+                      <span className="inline-flex items-center text-[11px] leading-none text-surface-200">|</span>
                       <button
                         onClick={() => handleDelete(listing.listing_id)}
-                        className="text-[11px] font-medium text-surface-400 hover:text-red-500 transition-colors"
+                        className="inline-flex items-center text-[11px] font-medium leading-none text-surface-400 hover:text-red-500 transition-colors"
                       >
                         Delete
                       </button>
