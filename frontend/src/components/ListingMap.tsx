@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import type { Listing } from '../types';
+import { parseApiUtc } from '../utils/dateTime';
 
 // Fix leaflet's broken default icon paths when bundled with Vite
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -22,7 +23,7 @@ const defaultIcon = L.icon({
 });
 
 function formatExpiry(isoString: string): string {
-  const diff = new Date(isoString).getTime() - Date.now();
+  const diff = parseApiUtc(isoString).getTime() - Date.now();
   const hours = Math.floor(diff / 3600000);
   if (hours < 0) return 'Expired';
   if (hours < 1) return 'Expires soon';

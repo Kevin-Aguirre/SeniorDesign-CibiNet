@@ -52,9 +52,9 @@ export default function Landing() {
   const { user } = useAuth();
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-black">
       {/* ===== HERO ===== */}
-      <section className="relative min-h-[90vh] flex items-center justify-center bg-black">
+      <section className="relative min-h-screen min-h-[100dvh] flex items-center justify-center bg-black">
         <div className="absolute inset-0 grid-pattern opacity-[0.04]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
@@ -81,7 +81,7 @@ export default function Landing() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-10 animate-fade-up-3">
             {user ? (
-              <Link to="/listings" className="btn-accent !px-8 !py-3.5 !text-sm">
+              <Link to={user.role === 'Admin' ? '/admin' : user.role === 'Donor' ? '/my-listings' : '/listings'} className="btn-accent !px-8 !py-3.5 !text-sm">
                 Go to Dashboard
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />

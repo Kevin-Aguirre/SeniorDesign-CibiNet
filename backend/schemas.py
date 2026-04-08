@@ -13,6 +13,10 @@ class UserSchema:
         self.user_id = user.user_id
         self.email = user.email
         self.role = user.role
+        self.is_verified = user.is_verified
+        self.is_suspended = user.is_suspended
+        self.suspension_reason = user.suspension_reason
+        self.suspended_at = user.suspended_at.isoformat() if user.suspended_at else None
         self.created_at = user.created_at.isoformat()
 
     def to_dict(self):
@@ -20,6 +24,10 @@ class UserSchema:
             "user_id": self.user_id,
             "email": self.email,
             "role": self.role,
+            "is_verified": self.is_verified,
+            "is_suspended": self.is_suspended,
+            "suspension_reason": self.suspension_reason,
+            "suspended_at": self.suspended_at,
             "created_at": self.created_at
         }
 
@@ -174,4 +182,66 @@ class AuditLogSchema:
             "entity_type": self.entity_type,
             "entity_id": self.entity_id,
             "timestamp": self.timestamp
+        }
+
+
+class ClaimDisputeSchema:
+    def __init__(self, dispute):
+        self.dispute_id = dispute.dispute_id
+        self.claim_id = dispute.claim_id
+        self.reporter_id = dispute.reporter_id
+        self.reporter_email = dispute.reporter.email if dispute.reporter else None
+        self.reason = dispute.reason
+        self.details = dispute.details
+        self.status = dispute.status
+        self.resolution_note = dispute.resolution_note
+        self.reviewed_by = dispute.reviewed_by
+        self.created_at = dispute.created_at.isoformat()
+        self.reviewed_at = dispute.reviewed_at.isoformat() if dispute.reviewed_at else None
+
+    def to_dict(self):
+        return {
+            "dispute_id": self.dispute_id,
+            "claim_id": self.claim_id,
+            "reporter_id": self.reporter_id,
+            "reporter_email": self.reporter_email,
+            "reason": self.reason,
+            "details": self.details,
+            "status": self.status,
+            "resolution_note": self.resolution_note,
+            "reviewed_by": self.reviewed_by,
+            "created_at": self.created_at,
+            "reviewed_at": self.reviewed_at
+        }
+
+
+class SuspiciousActivitySchema:
+    def __init__(self, activity):
+        self.activity_id = activity.activity_id
+        self.user_id = activity.user_id
+        self.user_email = activity.user.email if activity.user else None
+        self.claim_id = activity.claim_id
+        self.activity_type = activity.activity_type
+        self.severity = activity.severity
+        self.details = activity.details
+        self.status = activity.status
+        self.reviewed_by = activity.reviewed_by
+        self.review_note = activity.review_note
+        self.detected_at = activity.detected_at.isoformat()
+        self.reviewed_at = activity.reviewed_at.isoformat() if activity.reviewed_at else None
+
+    def to_dict(self):
+        return {
+            "activity_id": self.activity_id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "claim_id": self.claim_id,
+            "activity_type": self.activity_type,
+            "severity": self.severity,
+            "details": self.details,
+            "status": self.status,
+            "reviewed_by": self.reviewed_by,
+            "review_note": self.review_note,
+            "detected_at": self.detected_at,
+            "reviewed_at": self.reviewed_at
         }

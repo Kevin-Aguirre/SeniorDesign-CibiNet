@@ -48,6 +48,13 @@ def save_upload(file_field):
 
 
 class ListingController(TGController):
+    def _blocked_if_suspended(self, user_id):
+        user = session.query(User).filter_by(user_id=user_id).first()
+        if user and user.is_suspended:
+            response.status = 403
+            return {"error": f"Account suspended: {user.suspension_reason or 'Contact support'}"}
+        return None
+
     @expose('json')
     def nearby(self, lat, lon, radius=5, food_type=None):
         """FR-03: Geographic Discovery API"""
@@ -59,6 +66,9 @@ class ListingController(TGController):
         if tg_session.get('user_role') != 'Recipient':
             response.status = 403
             return {"error": "Only Recipients can browse listings"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         delta = float(radius) / 111.0
         now = datetime.datetime.utcnow()
@@ -88,6 +98,9 @@ class ListingController(TGController):
         if tg_session.get('user_role') != 'Recipient':
             response.status = 403
             return {"error": "Only Recipients can claim listings"}
+        blocked = self._blocked_if_suspended(recipient_id)
+        if blocked:
+            return blocked
 
         if logistics_type not in self.VALID_LOGISTICS_TYPES:
             response.status = 400
@@ -145,6 +158,9 @@ class ListingController(TGController):
         if tg_session.get('user_role') != 'Donor':
             response.status = 403
             return {"error": "Only Donors can create listings"}
+        blocked = self._blocked_if_suspended(donor_id)
+        if blocked:
+            return blocked
 
         food_type = kwargs.get('food_type')
         quantity = kwargs.get('quantity')
@@ -216,6 +232,9 @@ class ListingController(TGController):
         if listing.donor_id != user_id:
             response.status = 403
             return {"error": "Access denied"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         return ListingSchema(listing).to_dict()
 
@@ -230,6 +249,9 @@ class ListingController(TGController):
         if tg_session.get('user_role') != 'Donor':
             response.status = 403
             return {"error": "Only Donors can update listings"}
+        blocked = self._blocked_if_suspended(donor_id)
+        if blocked:
+            return blocked
 
         listing_id = kwargs.get('listing_id')
         if not listing_id:
@@ -299,6 +321,9 @@ class ListingController(TGController):
         if tg_session.get('user_role') != 'Donor':
             response.status = 403
             return {"error": "Only Donors can delete listings"}
+        blocked = self._blocked_if_suspended(donor_id)
+        if blocked:
+            return blocked
 
         listing = session.query(Listing).filter_by(
             listing_id=listing_id, donor_id=donor_id

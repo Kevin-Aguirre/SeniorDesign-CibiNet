@@ -47,6 +47,9 @@ class AuthController(TGController):
         if not user:
             response.status = 401
             return {"error": "Invalid credentials"}
+        if user.is_suspended:
+            response.status = 403
+            return {"error": f"Account suspended: {user.suspension_reason or 'Contact support'}"}
 
         # Store user info in the TG session
         tg_session['user_id'] = user.user_id

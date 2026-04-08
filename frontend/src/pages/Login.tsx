@@ -16,7 +16,11 @@ export default function Login() {
     setLoading(true);
     try {
       const loggedInUser = await login(email, password);
-      navigate(loggedInUser.role === 'Donor' ? '/my-listings' : '/listings');
+      if (loggedInUser.role === 'Admin') {
+        navigate('/admin');
+      } else {
+        navigate(loggedInUser.role === 'Donor' ? '/my-listings' : '/listings');
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import type { Listing } from '../types';
+import { parseApiUtc } from '../utils/dateTime';
 
 interface Props {
   listing: Listing;
@@ -9,7 +10,7 @@ interface Props {
 }
 
 function formatExpiry(isoString: string): string {
-  const diff = new Date(isoString).getTime() - Date.now();
+  const diff = parseApiUtc(isoString).getTime() - Date.now();
   const hours = Math.floor(diff / 3600000);
   if (hours < 0) return 'Expired';
   if (hours < 1) return 'Expires soon';
@@ -41,7 +42,7 @@ export default function ListingCard({ listing, onClaimed }: Props) {
   };
 
   const expiryLabel = formatExpiry(listing.expiry_time);
-  const isExpiringSoon = new Date(listing.expiry_time).getTime() - Date.now() < 3600000;
+  const isExpiringSoon = parseApiUtc(listing.expiry_time).getTime() - Date.now() < 3600000;
 
   return (
     <div className="card-elevated group p-0 overflow-hidden">

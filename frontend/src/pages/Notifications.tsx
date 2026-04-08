@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { Notification } from '../types';
+import { formatLocalDateTime } from '../utils/dateTime';
 
 const TYPE_STYLES: Record<string, string> = {
   claim_received: 'text-blue-700 bg-blue-50',
@@ -102,7 +103,7 @@ export default function Notifications() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-surface-300 shrink-0">
-                    {new Date(n.sent_at).toLocaleString()}
+                    {formatLocalDateTime(n.sent_at)}
                   </span>
                   {!n.is_read && (
                     <button

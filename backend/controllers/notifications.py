@@ -42,6 +42,12 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
 
 
 class NotificationController(TGController):
+    def _blocked_if_suspended(self, user_id):
+        user = session.query(User).filter_by(user_id=user_id).first()
+        if user and user.is_suspended:
+            response.status = 403
+            return {"error": f"Account suspended: {user.suspension_reason or 'Contact support'}"}
+        return None
 
     @expose('json')
     def mine(self):
@@ -50,6 +56,9 @@ class NotificationController(TGController):
         if not user_id:
             response.status = 401
             return {"error": "Not authenticated"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         notifications = session.query(Notification).filter_by(
             user_id=user_id
@@ -64,6 +73,9 @@ class NotificationController(TGController):
         if not user_id:
             response.status = 401
             return {"error": "Not authenticated"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         notif = session.query(Notification).filter_by(
             notification_id=notification_id, user_id=user_id
@@ -88,6 +100,9 @@ class NotificationController(TGController):
         if not user_id:
             response.status = 401
             return {"error": "Not authenticated"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         try:
             session.query(Notification).filter_by(
@@ -107,6 +122,9 @@ class NotificationController(TGController):
         if not user_id:
             response.status = 401
             return {"error": "Not authenticated"}
+        blocked = self._blocked_if_suspended(user_id)
+        if blocked:
+            return blocked
 
         count = session.query(Notification).filter_by(
             user_id=user_id, is_read=False

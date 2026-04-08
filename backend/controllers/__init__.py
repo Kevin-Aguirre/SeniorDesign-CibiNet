@@ -5,6 +5,7 @@ from .system import SystemController
 from .notifications import NotificationController
 from .claims import ClaimController
 from .users import UserController
+from .admin import AdminController
 
 class ApiController(TGController):
     auth = AuthController()
@@ -13,6 +14,7 @@ class ApiController(TGController):
     notifications = NotificationController()
     claims = ClaimController()
     users = UserController()
+    admin = AdminController()
 
     @expose('json')
     def index(self):

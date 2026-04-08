@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from model import Base, User, Listing, Claim, Notification, AuditLog
+from model import Base, User, Listing, Claim, Notification, AuditLog, ClaimDispute, SuspiciousActivity
 import datetime
 import hashlib
 
@@ -16,6 +16,8 @@ def hash_pw(plain):
 
 def clear_all():
     """Delete all rows in dependency order before re-seeding."""
+    session.query(SuspiciousActivity).delete()
+    session.query(ClaimDispute).delete()
     session.query(AuditLog).delete()
     session.query(Notification).delete()
     session.query(Claim).delete()
@@ -52,8 +54,14 @@ def seed_data():
         password_hash=hash_pw("password123"),
         role="Recipient"
     )
+    admin1 = User(
+        email="admin@example.com",
+        password_hash=hash_pw("password123"),
+        role="Admin",
+        is_verified=True
+    )
 
-    session.add_all([donor1, donor2, recipient1, recipient2])
+    session.add_all([donor1, donor2, recipient1, recipient2, admin1])
     session.commit()
 
     now = datetime.datetime.utcnow()
@@ -254,6 +262,7 @@ def seed_data():
     print(f"  Donor 2     (has listings 3-5):      {donor2.email}")
     print(f"  Recipient 1 (claim {claim1.claim_id} on listing {listing4.listing_id}): {recipient1.email}")
     print(f"  Recipient 2 (claim {claim2.claim_id} on listing {listing5.listing_id}): {recipient2.email}")
+    print(f"  Admin: {admin1.email}")
 
     print("\n=== Endpoint coverage ===")
     print("  POST /api/auth/login          → use any credential above")
