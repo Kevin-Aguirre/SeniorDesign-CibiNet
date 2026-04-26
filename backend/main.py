@@ -1,10 +1,15 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 from tg import AppConfig
 from wsgiref.simple_server import make_server
 from controllers import RootController
 from controllers.system import run_cleanup
+from model import Base, engine
 import threading
 import time
-import os
+Base.metadata.create_all(engine)
 
 CLEANUP_INTERVAL_SECONDS = 300
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')

@@ -115,6 +115,12 @@ class ListingController(TGController):
             response.status = 409
             return {"error": "Item unavailable"}
 
+        if listing.expiry_time < datetime.datetime.utcnow():
+            listing.status = 'expired'
+            session.commit()
+            response.status = 409
+            return {"error": "Item unavailable"}
+
         try:
             listing.status = 'claimed'
             new_claim = Claim(

@@ -102,3 +102,15 @@ class SuspiciousActivity(Base):
 
     user = relationship("User", foreign_keys=[user_id])
     claim = relationship("Claim")
+
+
+class PasswordResetToken(Base):
+    __tablename__ = 'password_reset_tokens'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    token = Column(String(100), unique=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User")

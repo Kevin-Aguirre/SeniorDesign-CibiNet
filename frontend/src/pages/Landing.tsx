@@ -213,15 +213,26 @@ export default function Landing() {
             Join CibiNet today. Whether you have food to share or meals to find — every connection counts.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-            <Link to="/register" className="btn-accent !px-8 !py-3.5 !text-sm">
-              Create Free Account
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-            <Link to="/login" className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] px-8 py-3.5 text-sm font-semibold text-white/50 transition-all duration-200 hover:text-white hover:border-white/20 active:scale-[0.98]">
-              Sign In
-            </Link>
+            {user ? (
+              <Link to={user.role === 'Admin' ? '/admin' : user.role === 'Donor' ? '/my-listings' : '/listings'} className="btn-accent !px-8 !py-3.5 !text-sm">
+                Go to Dashboard
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            ) : (
+              <>
+                <Link to="/register" className="btn-accent !px-8 !py-3.5 !text-sm">
+                  Create Free Account
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+                <Link to="/login" className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] px-8 py-3.5 text-sm font-semibold text-white/50 transition-all duration-200 hover:text-white hover:border-white/20 active:scale-[0.98]">
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

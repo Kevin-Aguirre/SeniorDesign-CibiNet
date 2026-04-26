@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -31,10 +32,10 @@ function formatExpiry(isoString: string): string {
   return `${Math.floor(hours / 24)}d left`;
 }
 
-function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: () => void }) {
+function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: (result: { coordinationId: string; address: string }) => void }) {
   const { user } = useAuth();
   const [claiming, setClaiming] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [claimed, setClaimed] = useState(false);
   const [error, setError] = useState('');
 
   const handleClaim = async (logisticsType: string) => {
@@ -42,8 +43,8 @@ function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: () => v
     setError('');
     try {
       const res = await api.listings.claim(listing.id, logisticsType);
-      setResult(res.coordination_id);
-      onClaimed();
+      setClaimed(true);
+      onClaimed({ coordinationId: res.coordination_id, address: res.logistics_packet.address });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to claim');
     } finally {
@@ -62,10 +63,12 @@ function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: () => v
 
       {error && <p style={{ color: '#dc2626', fontSize: 12, marginBottom: 6 }}>{error}</p>}
 
-      {result ? (
-        <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '6px 8px', fontSize: 12 }}>
-          <p style={{ fontWeight: 600, color: '#15803d' }}>Claimed!</p>
-          <p style={{ color: '#166534' }}>ID: {result}</p>
+      {claimed ? (
+        <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '8px 10px', fontSize: 12 }}>
+          <p style={{ fontWeight: 700, color: '#15803d', marginBottom: 4 }}>✓ Donation claimed!</p>
+          <Link to="/my-claims" style={{ color: '#16a34a', fontWeight: 600, textDecoration: 'underline' }}>
+            View in My Claims →
+          </Link>
         </div>
       ) : user?.role === 'Recipient' && (
         <div style={{ display: 'flex', gap: 6 }}>
@@ -91,7 +94,7 @@ function MapPopup({ listing, onClaimed }: { listing: Listing; onClaimed: () => v
 
 interface Props {
   listings: Listing[];
-  onClaimed: () => void;
+  onClaimed: (result: { coordinationId: string; address: string }) => void;
 }
 
 export default function ListingMap({ listings, onClaimed }: Props) {

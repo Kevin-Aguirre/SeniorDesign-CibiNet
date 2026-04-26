@@ -63,6 +63,16 @@ export const api = {
 
     checkStatus: () =>
       get<{ logged_in: boolean; user_id?: number; user_role?: string }>('/auth/check_status'),
+
+    requestReset: (email: string) =>
+      post<{ status: string; message: string; dev_reset_token?: string }>(
+        '/auth/request_reset', { email }
+      ),
+
+    resetPassword: (token: string, new_password: string) =>
+      post<{ status: string; message: string }>(
+        '/auth/reset_password', { token, new_password }
+      ),
   },
 
   users: {
