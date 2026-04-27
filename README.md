@@ -122,23 +122,62 @@ SeniorDesign-CibiNet/
 
 Both the backend and frontend must be running simultaneously during development.
 
+### Prerequisites
+
+| Tool | Required version | Used for |
+|---|---|---|
+| Python | 3.10 or newer | Backend runtime |
+| Node.js | 18 or newer (npm 9+) | Frontend build & dev server |
+| PostgreSQL | 14 or newer | Database (install natively **or** run via Docker — pick one) |
+| Docker | 20.10 or newer | Only required if using the Docker-based PostgreSQL option |
+
+Verify with `python3 --version`, `node --version`, `psql --version`, `docker --version`.
+
 ### Backend Setup
 
 #### 1. Provision PostgreSQL
 
-CibiNet requires a running PostgreSQL 14+ instance. The app connects to it
-through the `CIBINET_DB_URL` environment variable; if unset it falls back to
-`postgresql+psycopg://cibinet:cibinet@localhost:5432/cibinet_dev`.
+CibiNet connects to PostgreSQL via the `CIBINET_DB_URL` environment variable. If unset, it falls back to:
 
-Create the role and database (one-time):
+```
+postgresql+psycopg://cibinet:cibinet@localhost:5432/cibinet_dev
+```
+
+Pick **one** of the two options below. Both produce a database that matches the default URL — no further configuration needed.
+
+##### Option A — Native PostgreSQL install
+
+Run on a machine where `psql` is installed and you have access to the Postgres server:
 
 ```bash
-# from any machine with psql installed and access to the Postgres server
-createuser --pwprompt cibinet           # set password "cibinet" to match the default URL
+createuser --pwprompt cibinet     # at the prompt, enter password: cibinet
 createdb --owner=cibinet cibinet_dev
 ```
 
-Or with Docker:
+##### Option B — PostgreSQL in Docker
+
+**Before running any `docker` command, the Docker daemon must be running.** If you see `Cannot connect to the Docker daemon at unix:///var/run/docker.sock` (Linux) or `error during connect` (macOS/Windows), the daemon is not up yet.
+
+**Linux** (Docker Engine, systemd-based distros — Ubuntu, Fedora, Debian, Arch, etc.):
+
+```bash
+sudo systemctl start docker          # start the daemon now
+sudo systemctl enable docker         # optional: auto-start on boot
+```
+
+If `docker` commands print a permission error, prefix them with `sudo`. To skip `sudo` permanently, run `sudo usermod -aG docker $USER` once and log out + back in.
+
+**macOS** (Docker Desktop or OrbStack): launch the app from `/Applications` (or run `open -a Docker`) and wait until the menu-bar icon shows "Docker Desktop is running".
+
+**Windows** (Docker Desktop): launch Docker Desktop from the Start menu and wait until the system tray icon reports "Engine running". Run the `docker` commands below in PowerShell, WSL2, or Git Bash. WSL2 is recommended — Docker Desktop integrates with it automatically.
+
+Verify the daemon is reachable on any platform:
+
+```bash
+docker info >/dev/null && echo "docker is up"
+```
+
+Then start the database container (one-time):
 
 ```bash
 docker run --name cibinet-db \
@@ -149,29 +188,51 @@ docker run --name cibinet-db \
   -d postgres:16
 ```
 
-To use a different host/port/credentials, export the override before running
-any of the Python commands below:
+On subsequent shell sessions, the container already exists — just restart it:
 
 ```bash
-export CIBINET_DB_URL="postgresql+psycopg://USER:PASS@HOST:PORT/DBNAME"
+docker start cibinet-db    # start existing container
+docker stop  cibinet-db    # stop it when you're done
 ```
 
+##### Using a non-default database (skip this unless you actually need it)
+
+If — and only if — you're connecting to a Postgres instance that does **not** match the default credentials (`cibinet` / `cibinet` / `localhost:5432` / `cibinet_dev`), export an override in the same shell that will run the Python commands. **Replace every placeholder below with real values; do not run this line as-is:**
+
+```bash
+export CIBINET_DB_URL="postgresql+psycopg://<your-user>:<your-pass>@<your-host>:<your-port>/<your-db>"
+```
+
+If you ran the Docker or native setup above with the defaults, **skip this step entirely.**
+
 #### 2. Install dependencies and start the server
+
+Wait until PostgreSQL is accepting connections. Pick the check that matches your setup:
+
+```bash
+# If you used Option A (native install) — requires the Postgres client tools
+pg_isready -h localhost -p 5432
+
+# If you used Option B (Docker) — works without psql installed
+docker exec cibinet-db pg_isready -U cibinet
+```
+
+Either should print `accepting connections`. Then:
 
 ```bash
 cd backend
 
 # Create and activate a virtual environment
 python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source venv/bin/activate            # Windows: venv\Scripts\activate
 
 # Install dependencies (psycopg 3 is included)
 pip install -r requirements.txt
 
-# Initialize the database (runs CREATE TABLE for every model)
+# Create all tables (idempotent — safe to re-run)
 python db_init.py
 
-# (Optional) Seed with test data
+# Load test data (recommended for first-time setup; clears existing rows first)
 python db_seed.py
 
 # Start the API server on port 8080

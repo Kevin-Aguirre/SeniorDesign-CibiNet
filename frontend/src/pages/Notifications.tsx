@@ -115,7 +115,7 @@ export default function Notifications() {
                   )}
                 </div>
               </div>
-              <p className="text-sm text-surface-700 leading-relaxed">{n.message}</p>
+              <p className="text-sm text-surface-700 leading-relaxed whitespace-pre-line">{n.message}</p>
             </div>
           ))}
         </div>

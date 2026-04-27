@@ -11,12 +11,15 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
     Coordination ID since no external email service is configured yet.
     """
     coordination_id = f"COORD-{claim.claim_id}"
+    logistics_label = "Self pickup" if claim.logistics_type == "self_pickup" else "Third-party delivery"
 
     donor_msg = (
-        f"Your listing '{listing.food_type}' (Qty: {listing.quantity}) has been claimed. "
-        f"Coordination ID: {coordination_id}. "
-        f"Recipient contact: {recipient.email}. "
-        f"Fulfillment method: {claim.logistics_type}."
+        f"Your listing has been claimed.\n"
+        f"\n"
+        f"Item: {listing.food_type} ({listing.quantity})\n"
+        f"Coordination ID: {coordination_id}\n"
+        f"Recipient: {recipient.email}\n"
+        f"Fulfillment: {logistics_label}"
     )
     donor_notification = Notification(
         user_id=donor.user_id,
@@ -25,11 +28,13 @@ def dispatch_claim_notifications(claim, listing, donor, recipient):
     )
 
     recipient_msg = (
-        f"You have successfully claimed '{listing.food_type}' (Qty: {listing.quantity}). "
-        f"Coordination ID: {coordination_id}. "
-        f"Donor contact: {donor.email}. "
-        f"Pickup address: {listing.address_text}. "
-        f"Fulfillment method: {claim.logistics_type}."
+        f"You successfully claimed a listing.\n"
+        f"\n"
+        f"Item: {listing.food_type} ({listing.quantity})\n"
+        f"Coordination ID: {coordination_id}\n"
+        f"Donor: {donor.email}\n"
+        f"Pickup address: {listing.address_text}\n"
+        f"Fulfillment: {logistics_label}"
     )
     recipient_notification = Notification(
         user_id=recipient.user_id,
