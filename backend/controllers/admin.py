@@ -52,6 +52,7 @@ class AdminController(TGController):
         if err:
             return err
 
+        user_id = int(user_id)
         user = session.query(User).filter_by(user_id=user_id).first()
         if not user:
             response.status = 404
@@ -79,6 +80,7 @@ class AdminController(TGController):
         if err:
             return err
 
+        user_id = int(user_id)
         user = session.query(User).filter_by(user_id=user_id).first()
         if not user:
             response.status = 404
@@ -119,6 +121,7 @@ class AdminController(TGController):
         if err:
             return err
 
+        user_id = int(user_id)
         user = session.query(User).filter_by(user_id=user_id).first()
         if not user:
             response.status = 404
@@ -160,6 +163,7 @@ class AdminController(TGController):
             response.status = 400
             return {"error": "Invalid status"}
 
+        dispute_id = int(dispute_id)
         dispute = session.query(ClaimDispute).filter_by(dispute_id=dispute_id).first()
         if not dispute:
             response.status = 404
@@ -202,6 +206,7 @@ class AdminController(TGController):
             response.status = 400
             return {"error": "Invalid status"}
 
+        activity_id = int(activity_id)
         activity = session.query(SuspiciousActivity).filter_by(activity_id=activity_id).first()
         if not activity:
             response.status = 404
@@ -237,6 +242,8 @@ class AdminController(TGController):
         if severity not in {'low', 'medium', 'high'}:
             response.status = 400
             return {"error": "Invalid severity"}
+        claim_id = int(claim_id) if claim_id else None
+        user_id = int(user_id) if user_id else None
         if claim_id and not session.query(Claim).filter_by(claim_id=claim_id).first():
             response.status = 404
             return {"error": "Claim not found"}

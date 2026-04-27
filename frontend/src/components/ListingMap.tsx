@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { api } from '../api/client';
@@ -106,17 +107,24 @@ export default function ListingMap({ listings, onClaimed }: Props) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {listings.map(listing => (
-          <Marker
-            key={listing.id}
-            position={[listing.lat, listing.lon]}
-            icon={defaultIcon}
-          >
-            <Popup>
-              <MapPopup listing={listing} onClaimed={onClaimed} />
-            </Popup>
-          </Marker>
-        ))}
+        <MarkerClusterGroup
+          chunkedLoading
+          spiderfyOnMaxZoom
+          showCoverageOnHover={false}
+          maxClusterRadius={45}
+        >
+          {listings.map(listing => (
+            <Marker
+              key={listing.id}
+              position={[listing.lat, listing.lon]}
+              icon={defaultIcon}
+            >
+              <Popup>
+                <MapPopup listing={listing} onClaimed={onClaimed} />
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );

@@ -82,6 +82,7 @@ class NotificationController(TGController):
         if blocked:
             return blocked
 
+        notification_id = int(notification_id)
         notif = session.query(Notification).filter_by(
             notification_id=notification_id, user_id=user_id
         ).first()

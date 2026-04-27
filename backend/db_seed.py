@@ -141,6 +141,82 @@ def seed_data():
         address_text="123 Baker St, New York, NY"
     )
 
+    # --- Co-located cluster A: 4 listings at the EXACT same coords as listing1
+    # (40.7128, -74.0060). Tests MarkerClusterGroup spiderfy behavior.
+    listing15 = Listing(
+        donor_id=donor1.user_id,
+        food_type="Cinnamon Rolls",
+        quantity="20 Rolls",
+        status="available",
+        expiry_time=now + datetime.timedelta(hours=8),
+        latitude=40.7128,
+        longitude=-74.0060,
+        address_text="123 Baker St, New York, NY"
+    )
+    listing16 = Listing(
+        donor_id=donor1.user_id,
+        food_type="Baguettes",
+        quantity="18 Loaves",
+        status="available",
+        expiry_time=now + datetime.timedelta(hours=14),
+        latitude=40.7128,
+        longitude=-74.0060,
+        address_text="123 Baker St, New York, NY"
+    )
+    listing17 = Listing(
+        donor_id=donor1.user_id,
+        food_type="Blueberry Muffins",
+        quantity="36 Muffins",
+        status="available",
+        expiry_time=now + datetime.timedelta(hours=20),
+        latitude=40.7128,
+        longitude=-74.0060,
+        address_text="123 Baker St, New York, NY"
+    )
+    listing18 = Listing(
+        donor_id=donor1.user_id,
+        food_type="Chocolate Chip Cookies",
+        quantity="50 Cookies",
+        status="available",
+        expiry_time=now + datetime.timedelta(hours=30),
+        latitude=40.7128,
+        longitude=-74.0060,
+        address_text="123 Baker St, New York, NY"
+    )
+
+    # --- Co-located cluster B: 3 listings at the EXACT same coords as listing3
+    # (40.7200, -74.0020). Second cluster point to test multi-cluster maps.
+    listing19 = Listing(
+        donor_id=donor2.user_id,
+        food_type="Canned Tuna",
+        quantity="60 Cans",
+        status="available",
+        expiry_time=now + datetime.timedelta(days=3),
+        latitude=40.7200,
+        longitude=-74.0020,
+        address_text="789 Greenmarket Blvd, New York, NY"
+    )
+    listing20 = Listing(
+        donor_id=donor2.user_id,
+        food_type="Rice (Long Grain)",
+        quantity="10 Bags (5 lb)",
+        status="available",
+        expiry_time=now + datetime.timedelta(days=10),
+        latitude=40.7200,
+        longitude=-74.0020,
+        address_text="789 Greenmarket Blvd, New York, NY"
+    )
+    listing21 = Listing(
+        donor_id=donor2.user_id,
+        food_type="Pasta (Penne)",
+        quantity="24 Boxes",
+        status="available",
+        expiry_time=now + datetime.timedelta(days=7),
+        latitude=40.7200,
+        longitude=-74.0020,
+        address_text="789 Greenmarket Blvd, New York, NY"
+    )
+
     # --- Claimed listings ---
     # Claimed by recipient1, awaiting safety acknowledgement
     listing4 = Listing(
@@ -224,7 +300,8 @@ def seed_data():
     session.add_all([
         listing1, listing2, listing3, listing4, listing5, listing6,
         listing7, listing8, listing9, listing10, listing11, listing12,
-        listing13, listing14,
+        listing13, listing14, listing15, listing16, listing17, listing18,
+        listing19, listing20, listing21,
     ])
     session.commit()
 
@@ -445,6 +522,13 @@ def seed_data():
         audit(donor2.user_id, 'listing_created', 'listing', listing12.listing_id, 460),
         audit(donor2.user_id, 'listing_created', 'listing', listing13.listing_id, 1500),
         audit(donor1.user_id, 'listing_created', 'listing', listing14.listing_id, 2200),
+        audit(donor1.user_id, 'listing_created', 'listing', listing15.listing_id, 200),
+        audit(donor1.user_id, 'listing_created', 'listing', listing16.listing_id, 190),
+        audit(donor1.user_id, 'listing_created', 'listing', listing17.listing_id, 180),
+        audit(donor1.user_id, 'listing_created', 'listing', listing18.listing_id, 170),
+        audit(donor2.user_id, 'listing_created', 'listing', listing19.listing_id, 160),
+        audit(donor2.user_id, 'listing_created', 'listing', listing20.listing_id, 150),
+        audit(donor2.user_id, 'listing_created', 'listing', listing21.listing_id, 140),
 
         # listing_claimed — for each claim
         audit(recipient1.user_id, 'listing_claimed', 'listing', listing4.listing_id, 30),
@@ -492,7 +576,9 @@ def seed_data():
     print("  POST /api/auth/login          → use any credential above")
     print("  GET  /api/users/me            → login first, then call")
     print(f"  GET  /api/users/my_listings   → login as {donor1.email}")
-    print(f"  GET  /api/listings/nearby     → lat=40.7128&lon=-74.0060  (7 available results)")
+    print(f"  GET  /api/listings/nearby     → lat=40.7128&lon=-74.0060  (14 available results)")
+    print(f"     · Cluster A (5 markers stacked): lat=40.7128, lon=-74.0060 — listings 1, 15, 16, 17, 18")
+    print(f"     · Cluster B (4 markers stacked): lat=40.7200, lon=-74.0020 — listings 3, 19, 20, 21")
     print(f"  POST /api/listings/create     → login as a Donor")
     print(f"  POST /api/listings/claim      → login as a Recipient, use listing_id={listing1.listing_id}")
     print(f"  GET  /api/claims/mine         → login as {recipient1.email}  (2 claims)")

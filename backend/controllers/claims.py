@@ -38,6 +38,7 @@ class ClaimController(TGController):
             response.status = 401
             return {"error": "Not authenticated"}
 
+        claim_id = int(claim_id)
         claim = session.query(Claim).filter_by(claim_id=claim_id).first()
         if not claim:
             response.status = 404
@@ -64,6 +65,7 @@ class ClaimController(TGController):
             response.status = 401
             return {"error": "Not authenticated"}
 
+        claim_id = int(claim_id)
         claim = session.query(Claim).filter_by(
             claim_id=claim_id,
             recipient_id=user_id
@@ -98,6 +100,7 @@ class ClaimController(TGController):
             response.status = 401
             return {"error": "Not authenticated"}
 
+        claim_id = int(claim_id)
         claim = session.query(Claim).filter_by(
             claim_id=claim_id,
             recipient_id=user_id
@@ -136,6 +139,7 @@ class ClaimController(TGController):
             response.status = 401
             return {"error": "Not authenticated"}
 
+        claim_id = int(claim_id)
         claim = session.query(Claim).filter_by(claim_id=claim_id).first()
         if not claim:
             response.status = 404

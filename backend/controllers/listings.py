@@ -106,6 +106,7 @@ class ListingController(TGController):
             response.status = 400
             return {"error": f"Invalid logistics_type. Must be one of: {', '.join(self.VALID_LOGISTICS_TYPES)}"}
 
+        listing_id = int(listing_id)
         listing = session.query(Listing).filter_by(
             listing_id=listing_id,
             status='available'
@@ -224,6 +225,7 @@ class ListingController(TGController):
             response.status = 401
             return {"error": "Not authenticated"}
 
+        listing_id = int(listing_id)
         listing = session.query(Listing).filter_by(listing_id=listing_id).first()
         if not listing:
             response.status = 404
@@ -258,6 +260,7 @@ class ListingController(TGController):
             response.status = 400
             return {"error": "listing_id is required"}
 
+        listing_id = int(listing_id)
         listing = session.query(Listing).filter_by(
             listing_id=listing_id, donor_id=donor_id
         ).first()
@@ -325,6 +328,7 @@ class ListingController(TGController):
         if blocked:
             return blocked
 
+        listing_id = int(listing_id)
         listing = session.query(Listing).filter_by(
             listing_id=listing_id, donor_id=donor_id
         ).first()

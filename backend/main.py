@@ -2,12 +2,29 @@ from tg import AppConfig
 from wsgiref.simple_server import make_server
 from controllers import RootController
 from controllers.system import run_cleanup
+from model import session as db_session
 import threading
 import time
 import os
 
 CLEANUP_INTERVAL_SECONDS = 300
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+
+
+class SessionResetMiddleware:
+    """Roll back the global SQLAlchemy session before every request so a poisoned
+    transaction from a prior failure can't cascade into 500s on later requests."""
+
+    def __init__(self, app, db_session):
+        self.app = app
+        self.db_session = db_session
+
+    def __call__(self, environ, start_response):
+        try:
+            self.db_session.rollback()
+        except Exception:
+            pass
+        return self.app(environ, start_response)
 
 
 class StaticFileMiddleware:
@@ -64,6 +81,7 @@ config['session.key'] = 'cibinet_session'
 config['session.validate_key'] = 'cibinet-dev-secret-key'
 config['session.secure'] = False
 application = config.make_wsgi_app()
+application = SessionResetMiddleware(application, db_session)
 application = StaticFileMiddleware(application, UPLOAD_DIR)
 
 if __name__ == "__main__":
