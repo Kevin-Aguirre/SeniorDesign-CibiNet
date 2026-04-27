@@ -8,6 +8,7 @@ MarkupSafe==3.0.3
 PasteDeploy==3.1.0
 Pygments==2.19.2
 repoze.lru==0.7
+psycopg[binary]==3.2.3
 SQLAlchemy==2.0.48
 Tempita==0.6.0
 tg==0.22.0

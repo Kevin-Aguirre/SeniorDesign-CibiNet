@@ -2,10 +2,14 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Nume
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import datetime
+import os
 
 Base = declarative_base()
 
-DB_URL = "sqlite:///cibinet_dev.db"
+DB_URL = os.environ.get(
+    "CIBINET_DB_URL",
+    "postgresql+psycopg://cibinet:cibinet@localhost:5432/cibinet_dev",
+)
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 session = Session()

@@ -1,4 +1,4 @@
-from tg import expose, TGController
+from tg import expose, TGController, session as tg_session, response
 from model import session, Session, Listing, AuditLog
 from schemas import AuditLogSchema
 import datetime
@@ -50,7 +50,18 @@ class SystemController(TGController):
 
     @expose('json')
     def audit_log(self, limit=50):
-        """Return the most recent audit log entries for review (SSDS Section 9.1)."""
+        """Return the most recent audit log entries for review (SSDS Section 9.1).
+
+        Admin-gated per FR-10.1 / NFR-03.1: rows include user_id, action,
+        and entity_id values that are admin-only data.
+        """
+        if not tg_session.get('user_id'):
+            response.status = 401
+            return {"error": "Not authenticated"}
+        if tg_session.get('user_role') != 'Admin':
+            response.status = 403
+            return {"error": "Admin access required"}
+
         logs = session.query(AuditLog).order_by(
             AuditLog.timestamp.desc()
         ).limit(int(limit)).all()

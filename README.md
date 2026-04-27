@@ -66,7 +66,8 @@ When a claim is made, both parties receive in-app notifications with contact inf
 | Python | 3.x | Runtime |
 | TurboGears 2 | 2.5 | Web framework (WSGI) |
 | SQLAlchemy | 2.0 | ORM |
-| SQLite | — | Database (development) |
+| PostgreSQL | 14+ | Database |
+| psycopg | 3.2 | PostgreSQL driver |
 | Beaker | 1.13 | Session management |
 
 ---
@@ -123,6 +124,40 @@ Both the backend and frontend must be running simultaneously during development.
 
 ### Backend Setup
 
+#### 1. Provision PostgreSQL
+
+CibiNet requires a running PostgreSQL 14+ instance. The app connects to it
+through the `CIBINET_DB_URL` environment variable; if unset it falls back to
+`postgresql+psycopg://cibinet:cibinet@localhost:5432/cibinet_dev`.
+
+Create the role and database (one-time):
+
+```bash
+# from any machine with psql installed and access to the Postgres server
+createuser --pwprompt cibinet           # set password "cibinet" to match the default URL
+createdb --owner=cibinet cibinet_dev
+```
+
+Or with Docker:
+
+```bash
+docker run --name cibinet-db \
+  -e POSTGRES_USER=cibinet \
+  -e POSTGRES_PASSWORD=cibinet \
+  -e POSTGRES_DB=cibinet_dev \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+To use a different host/port/credentials, export the override before running
+any of the Python commands below:
+
+```bash
+export CIBINET_DB_URL="postgresql+psycopg://USER:PASS@HOST:PORT/DBNAME"
+```
+
+#### 2. Install dependencies and start the server
+
 ```bash
 cd backend
 
@@ -130,10 +165,10 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies (psycopg 3 is included)
 pip install -r requirements.txt
 
-# Initialize the database
+# Initialize the database (runs CREATE TABLE for every model)
 python db_init.py
 
 # (Optional) Seed with test data
@@ -238,4 +273,4 @@ After running `python db_seed.py`, the following accounts are available:
 
 ---
 
-> **Note:** This project is configured for local development. Before any production deployment, the hardcoded session secret in `main.py` should be replaced with an environment variable, password hashing should be upgraded from SHA-256 to bcrypt/argon2, the SQLite database should be replaced with a production-grade database, and the geocoding stub in `listings.py` should be wired to a real mapping API.
+> **Note:** This project is configured for local development. Before any production deployment, the hardcoded session secret in `main.py` should be replaced with an environment variable, password hashing should be upgraded from SHA-256 to bcrypt/argon2, the PostgreSQL credentials in `CIBINET_DB_URL` should come from a secrets manager, and the geocoding stub in `listings.py` should be wired to a real mapping API.
