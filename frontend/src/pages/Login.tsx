@@ -1,7 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -10,7 +9,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -116,9 +115,14 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest">
+                  Password
+                </label>
+                <Link to="/forgot-password" className="text-[11px] font-semibold text-surface-400 hover:text-primary-700 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"

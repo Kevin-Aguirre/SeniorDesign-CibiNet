@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import type { Listing } from '../types';
@@ -6,7 +7,7 @@ import { parseApiUtc } from '../utils/dateTime';
 
 interface Props {
   listing: Listing;
-  onClaimed?: () => void;
+  onClaimed?: (result: { coordinationId: string; address: string }) => void;
 }
 
 function formatExpiry(isoString: string): string {
@@ -22,18 +23,16 @@ export default function ListingCard({ listing, onClaimed }: Props) {
   const { user } = useAuth();
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState('');
-  const [claimResult, setClaimResult] = useState<{ coordinationId: string; address: string } | null>(null);
 
   const handleClaim = async (logisticsType: string) => {
     setClaiming(true);
     setError('');
     try {
       const res = await api.listings.claim(listing.id, logisticsType);
-      setClaimResult({
+      onClaimed?.({
         coordinationId: res.coordination_id,
         address: res.logistics_packet.address,
       });
-      onClaimed?.();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to claim');
     } finally {
@@ -96,20 +95,9 @@ export default function ListingCard({ listing, onClaimed }: Props) {
             {error}
           </div>
         )}
-        {claimResult && (
-          <div className="mt-3 card-bordered px-3 py-2.5 text-xs bg-green-50 border-green-100 animate-scale-in space-y-1">
-            <p className="font-bold text-green-700">Claimed successfully</p>
-            <p className="text-green-600">
-              <span className="font-medium">Coordination ID:</span> {claimResult.coordinationId}
-            </p>
-            <p className="text-green-600">
-              <span className="font-medium">Pickup at:</span> {claimResult.address}
-            </p>
-          </div>
-        )}
 
         {/* Claim buttons */}
-        {user?.role === 'Recipient' && !claimResult && (
+        {user?.role === 'Recipient' && (
           <div className="mt-4 flex gap-2">
             <button
               disabled={claiming}
@@ -133,8 +121,6 @@ export default function ListingCard({ listing, onClaimed }: Props) {
           </div>
         )}
       </div>
-
-      <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary-500/0 to-transparent group-hover:via-primary-500/40 transition-all duration-500" />
     </div>
   );
 }

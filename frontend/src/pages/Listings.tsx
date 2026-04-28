@@ -16,7 +16,13 @@ export default function Listings() {
   const [view, setView] = useState<View>('list');
   const [foodTypeFilter, setFoodTypeFilter] = useState('');
   const [geoStatus, setGeoStatus] = useState<'detecting' | 'granted' | 'denied'>('detecting');
+  const [claimBanner, setClaimBanner] = useState<{ coordinationId: string; address: string } | null>(null);
   const coordsRef = useRef({ lat: 40.7128, lon: -74.006 });
+
+  const handleClaimed = (result: { coordinationId: string; address: string }) => {
+    setClaimBanner(result);
+    fetchListings(foodTypeFilter || undefined);
+  };
 
   const fetchListings = async (filter?: string) => {
     setLoading(true);
@@ -155,6 +161,43 @@ export default function Listings() {
         </div>
       )}
 
+      {/* Claim success banner */}
+      {claimBanner && (
+        <div className="card-bordered px-5 py-4 bg-green-50 border-green-100 mb-6 animate-scale-in">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <div>
+                <p className="font-bold text-green-700 text-sm">Donation claimed!</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  Pickup at: <span className="font-medium">{claimBanner.address}</span>
+                </p>
+                <Link
+                  to="/my-claims"
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors"
+                >
+                  View in My Claims
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+            <button
+              onClick={() => setClaimBanner(null)}
+              className="text-green-400 hover:text-green-700 transition-colors shrink-0"
+              aria-label="Dismiss"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-28 gap-4 animate-fade-in">
@@ -186,7 +229,7 @@ export default function Listings() {
           )}
         </div>
       ) : view === 'map' ? (
-        <ListingMap listings={listings} onClaimed={() => fetchListings(foodTypeFilter || undefined)} />
+        <ListingMap listings={listings} onClaimed={handleClaimed} />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((listing, i) => (
@@ -195,7 +238,7 @@ export default function Listings() {
               className="animate-fade-up"
               style={{ animationDelay: `${i * 80}ms` }}
             >
-              <ListingCard listing={listing} onClaimed={() => fetchListings(foodTypeFilter || undefined)} />
+              <ListingCard listing={listing} onClaimed={handleClaimed} />
             </div>
           ))}
         </div>

@@ -7,6 +7,7 @@ hupper==1.12.1
 MarkupSafe==3.0.3
 PasteDeploy==3.1.0
 Pygments==2.19.2
+python-dotenv==1.0.1
 repoze.lru==0.7
 psycopg[binary]==3.2.10
 SQLAlchemy==2.0.48
