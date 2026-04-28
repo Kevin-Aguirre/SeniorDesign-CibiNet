@@ -1,5 +1,6 @@
 export interface User {
   user_id: number;
+  username: string;
   email: string;
   role: 'Donor' | 'Recipient' | 'Admin';
   is_verified: boolean;

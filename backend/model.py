@@ -17,6 +17,7 @@ session = Session()
 class User(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True)
+    username = Column(String(255), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
     role = Column(String(20), nullable=False) # 'Donor', 'Recipient', or 'Admin'

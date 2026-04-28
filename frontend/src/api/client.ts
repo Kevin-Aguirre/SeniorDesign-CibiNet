@@ -53,8 +53,8 @@ async function postFormData<T>(path: string, formData: FormData): Promise<T> {
 
 export const api = {
   auth: {
-    register: (email: string, password: string, role: string) =>
-      post<{ status: string; user_id: number }>('/auth/register', { email, password, role }),
+    register: (email: string, password: string, role: string, username: string) =>
+      post<{ status: string; user_id: number }>('/auth/register', { email, password, role, username }),
 
     login: (email: string, password: string) =>
       post<{ status: string; user: User }>('/auth/login', { email, password }),
@@ -67,6 +67,8 @@ export const api = {
 
   users: {
     me: () => get<User>('/users/me'),
+    updateProfile: (params: { username?: string; email?: string; current_password?: string; new_password?: string }) =>
+      post<User>('/users/update', params as Record<string, string>),
     myListings: () => get<{ listings: ListingDetail[] }>('/users/my_listings'),
   },
 

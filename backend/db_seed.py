@@ -34,26 +34,31 @@ def seed_data():
     # All accounts use password: "password123"
     # ------------------------------------------------------------------
     donor1 = User(
+        username="kevins_bakery",
         email="kevins_bakery@example.com",
         password_hash=hash_pw("password123"),
         role="Donor"
     )
     donor2 = User(
+        username="greenmarket_grocery",
         email="greenmarket_grocery@example.com",
         password_hash=hash_pw("password123"),
         role="Donor"
     )
     recipient1 = User(
+        username="downtown_foodbank",
         email="downtown_foodbank@example.com",
         password_hash=hash_pw("password123"),
         role="Recipient"
     )
     recipient2 = User(
+        username="eastside_shelter",
         email="eastside_shelter@example.com",
         password_hash=hash_pw("password123"),
         role="Recipient"
     )
     admin1 = User(
+        username="admin",
         email="admin@example.com",
         password_hash=hash_pw("password123"),
         role="Admin",

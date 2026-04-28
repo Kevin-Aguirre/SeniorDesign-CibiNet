@@ -6,8 +6,9 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, role: string) => Promise<User>;
+  register: (email: string, password: string, role: string, username: string) => Promise<User>;
   logout: () => Promise<void>;
+  refresh: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -32,8 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user;
   };
 
-  const register = async (email: string, password: string, role: string): Promise<User> => {
-    await api.auth.register(email, password, role);
+  const refresh = async (): Promise<User | null> => {
+    try {
+      const me = await api.users.me();
+      setUser(me);
+      return me;
+    } catch {
+      setUser(null);
+      return null;
+    }
+  };
+
+  const register = async (email: string, password: string, role: string, username: string): Promise<User> => {
+    await api.auth.register(email, password, role, username);
     return login(email, password);
   };
 
@@ -43,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

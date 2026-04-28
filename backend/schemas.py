@@ -11,6 +11,7 @@ class UserSchema:
 
     def __init__(self, user):
         self.user_id = user.user_id
+        self.username = user.username
         self.email = user.email
         self.role = user.role
         self.is_verified = user.is_verified
@@ -22,6 +23,7 @@ class UserSchema:
     def to_dict(self):
         return {
             "user_id": self.user_id,
+            "username": self.username,
             "email": self.email,
             "role": self.role,
             "is_verified": self.is_verified,

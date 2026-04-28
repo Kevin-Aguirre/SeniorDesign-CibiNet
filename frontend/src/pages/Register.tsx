@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'Donor' | 'Recipient'>('Donor');
@@ -16,7 +17,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await register(email, password, role);
+      await register(email, password, role, username);
       navigate(role === 'Donor' ? '/my-listings' : '/listings');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -97,6 +98,21 @@ export default function Register() {
                 {error}
               </div>
             )}
+
+            <div>
+              <label htmlFor="username" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-2">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="input"
+                placeholder="your username"
+              />
+            </div>
 
             <div>
               <label htmlFor="email" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-2">

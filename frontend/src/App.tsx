@@ -12,6 +12,7 @@ import MyClaims from './pages/MyClaims';
 import Notifications from './pages/Notifications';
 import EditListing from './pages/EditListing';
 import Admin from './pages/Admin';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -49,6 +50,10 @@ export default function App() {
             <Route
               path="/admin"
               element={<ProtectedRoute allowedRoles={['Admin']}><Admin /></ProtectedRoute>}
+            />
+            <Route
+              path="/profile"
+              element={<ProtectedRoute><Profile /></ProtectedRoute>}
             />
             <Route
               path="*"
